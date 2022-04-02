@@ -1,0 +1,24 @@
+spring:
+  config:
+    import: usersecrets.yml
+
+  sql:
+    init:
+      mode: embedded
+
+  jpa:
+    generate-ddl: false
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        format_sql: true
+
+logging:
+  level:
+    root: ERROR
+    # show application of sql database initialization scripts
+    org.springframework.jdbc.datasource.init.ScriptUtils: INFO
+    # show bind parameters
+    org.hibernate.type.descriptor.sql: TRACE

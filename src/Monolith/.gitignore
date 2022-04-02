@@ -1,4 +1,5 @@
 HELP.md
+usersecrets.yml
 *.log
 target/
 !.mvn/wrapper/maven-wrapper.jar
