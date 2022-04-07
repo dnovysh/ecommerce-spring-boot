@@ -132,6 +132,7 @@ values (1, 1, 'BOOK-TECH-1000', 1, 'JavaScript - The Fun Parts', 'Learn JavaScri
 -- -----------------------------------------------------
 -- Product - review data
 -- -----------------------------------------------------
-insert into ec_catalog.product_review(id, product_id, user_id, user_alias, text)
-values (1, 2, 203, 'Hidden', 'Awesome book'),
-       (2, 7, 203, 'Hidden', 'Meow');
+insert into ec_catalog.product_review(id, product_id, user_id, user_alias, text, date_created)
+values (1, 2, 203, 'Hidden', 'Awesome book', now()),
+       (2, 7, 202, 'Hidden', 'Meow', now()),
+       (3, 7, 203, 'Hidden', 'Excellent beer', now() + 1);

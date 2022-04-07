@@ -15,10 +15,16 @@ spring:
       hibernate:
         format_sql: true
 
+  data:
+    rest:
+      base-path: /api
+      return-body-on-create: true
+      return-body-on-update: true
+
 logging:
   level:
-    root: ERROR
+    root: INFO
     # show application of sql database initialization scripts
     org.springframework.jdbc.datasource.init.ScriptUtils: INFO
     # show bind parameters
-    org.hibernate.type.descriptor.sql: TRACE
+    # org.hibernate.type.descriptor.sql: TRACE
