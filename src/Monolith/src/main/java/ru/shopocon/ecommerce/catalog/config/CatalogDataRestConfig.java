@@ -8,6 +8,7 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import ru.shopocon.ecommerce.catalog.domain.Category;
 import ru.shopocon.ecommerce.catalog.domain.Product;
 import ru.shopocon.ecommerce.catalog.domain.Review;
+import ru.shopocon.ecommerce.catalog.projections.InlineCategory;
 import ru.shopocon.ecommerce.util.RepositoryRestConfigurerHelper;
 
 @Configuration
@@ -17,18 +18,19 @@ public class CatalogDataRestConfig implements RepositoryRestConfigurer {
     public void configureRepositoryRestConfiguration(RepositoryRestConfiguration config,
                                                      CorsRegistry cors) {
         final HttpMethod[] unsupportedHttpMethods = {
-                HttpMethod.POST,
-                HttpMethod.PUT,
-                HttpMethod.DELETE
+            HttpMethod.POST,
+            HttpMethod.PUT,
+            HttpMethod.DELETE
         };
         final Class<?>[] domainTypes = {
-                Category.class,
-                Product.class,
-                Review.class
+            Category.class,
+            Product.class,
+            Review.class
         };
         RepositoryRestConfigurerHelper
-                .disableHttpMethodsForDomainTypes(config, domainTypes, unsupportedHttpMethods);
+            .disableHttpMethodsForDomainTypes(config, domainTypes, unsupportedHttpMethods);
         config.exposeIdsFor(domainTypes);
+        config.getProjectionConfiguration().addProjection(InlineCategory.class);
         RepositoryRestConfigurer.super.configureRepositoryRestConfiguration(config, cors);
     }
 }
