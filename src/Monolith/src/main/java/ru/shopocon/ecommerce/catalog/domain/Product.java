@@ -49,17 +49,20 @@ public class Product {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "image_url")
-    private String imageUrl;
+    @Column(name = "image")
+    private String image;
 
     @Column(name = "active", nullable = false)
     private boolean active = true;
 
     @Column(name = "units_in_stock", nullable = false)
-    private long unitsInStock = 0L;
+    private int unitsInStock = 0;
 
     @Column(name = "unit_price")
     private BigDecimal unitPrice;
+
+    @Column(name = "rating")
+    private Integer rating;
 
     @Column(name = "date_created", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     @CreationTimestamp

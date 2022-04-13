@@ -1,3 +1,7 @@
+shopocon:
+  catalog:
+    low-stock-boundary: 5
+
 spring:
   config:
     import: usersecrets.yml

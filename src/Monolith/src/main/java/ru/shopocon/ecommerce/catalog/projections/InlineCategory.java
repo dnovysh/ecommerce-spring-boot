@@ -24,13 +24,18 @@ public interface InlineCategory {
 
     String getDescription();
 
-    String getImageUrl();
+    String getImage();
 
     boolean getActive();
 
-    long getUnitsInStock();
+    int getUnitsInStock();
 
     BigDecimal getUnitPrice();
+
+    Integer getRating();
+
+    @Value("#{@productUnitsInStockMapper.mapToInventoryStatus(target.getUnitsInStock())}")
+    String getInventoryStatus();
 
     OffsetDateTime getDateCreated();
 
