@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>ru.shopocon</groupId>
-    <artifactId>ecommerce</artifactId>
+    <artifactId>shopocon-monolith</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>ecommerce</name>
     <description>ecommerce</description>
