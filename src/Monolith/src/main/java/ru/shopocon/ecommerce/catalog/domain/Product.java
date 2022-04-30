@@ -64,6 +64,9 @@ public class Product {
     @Column(name = "rating")
     private Integer rating;
 
+    @Column(name = "popularity_index")
+    private int popularityIndex;
+
     @Column(name = "date_created", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     @CreationTimestamp
     private OffsetDateTime dateCreated;

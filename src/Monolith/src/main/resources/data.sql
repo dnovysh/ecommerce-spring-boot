@@ -115,46 +115,48 @@ values (1, 'Books'),
 -- -----------------------------------------------------
 insert into ec_catalog.product(id, dealer_id, sku, category_id, name,
                                description, image, active,
-                               units_in_stock, unit_price, rating, date_created)
+                               units_in_stock, unit_price, rating,
+                               popularity_index, date_created)
 values (1, 1, 'BOOK-TECH-1000', 1, 'JavaScript - The Fun Parts', 'Learn JavaScript',
-        'luv2code/books/book-luv2code-1000.png', true, 100, 19.99, null, now()),
+        'luv2code/books/book-luv2code-1000.png', true, 100, 19.99, null, 0, now()),
        (2, 1, 'BOOK-TECH-1001', 1, 'Spring Framework Tutorial', 'Learn Spring',
-        'luv2code/books/book-luv2code-1001.png', true, 100, 29.99, null, now()),
+        'luv2code/books/book-luv2code-1001.png', true, 100, 29.99, null, 100000, now()),
        (3, 1, 'BOOK-TECH-1002', 1, 'Kubernetes - Deploying Containers', 'Learn Kubernetes',
-        'luv2code/books/book-luv2code-1002.png', true, 100, 24.99, null, now()),
+        'luv2code/books/book-luv2code-1002.png', true, 100, 24.99, null, 0, now()),
        (4, 1, 'BOOK-TECH-1003', 1, 'Internet of Things (IoT) - Getting Started', 'Learn IoT',
-        'luv2code/books/book-luv2code-1003.png', true, 100, 29.99, null, now()),
+        'luv2code/books/book-luv2code-1003.png', true, 100, 29.99, null, 0, now()),
        (5, 1, 'BOOK-TECH-1004', 1, 'The Go Programming Language: A to Z', 'Learn Go',
-        'luv2code/books/book-luv2code-1004.png', true, 100, 24.99, null, now()),
+        'luv2code/books/book-luv2code-1004.png', true, 100, 24.99, null, 0, now()),
        -- Spring Guru
-       (6, 11, '0631234200036', 2, 'Mango Bobs', 'IPA', 'placeholder.png', true, 50, 1.99, null, now()),
-       (7, 12, '0631234300019', 2, 'Galaxy Cat', 'PALE ALE', 'placeholder.png', true, 70, 1.59, null, now()),
-       (8, 13, '0083783375213', 2, 'Pinball Porter', 'PORTER', 'placeholder.png', true, 30, 2.19, null, now()),
+       (6, 11, '0631234200036', 2, 'Mango Bobs', 'IPA', 'placeholder.png', true, 50, 1.99, null, 0, now()),
+       (7, 12, '0631234300019', 2, 'Galaxy Cat', 'PALE ALE', 'placeholder.png', true, 70, 1.59, null, 10000, now()),
+       (8, 13, '0083783375213', 2, 'Pinball Porter', 'PORTER', 'placeholder.png', true, 30, 2.19, null, 0, now()),
        -- PrimeNG
-       (1002, 21, 'zz21cz3c1', 4, 'Blue Band', null, 'primeng/blue-band.jpg', true, 2, 79.00, 60, now()),
-       (1003, 21, '244wgerg2', 3, 'Blue T-Shirt', null, 'primeng/blue-t-shirt.jpg', true, 25, 29.00, 100, now()),
-       (1004, 21, 'h456wer53', 5, 'Bracelet', null, 'primeng/bracelet.jpg', true, 73, 15.00, 80, now()),
-       (1006, 21, 'bib36pfvm', 5, 'Chakra Bracelet', null, 'primeng/chakra-bracelet.jpg', true, 5, 32.00, 60, now()),
-       (1012, 21, '250vm23cc', 3, 'Green T-Shirt', null, 'primeng/green-t-shirt.jpg', true, 74, 49.00, 100, now()),
-       (1013, 21, 'fldsmn31bt', 3, 'Grey T-Shirt', null, 'primeng/grey-t-shirt.jpg', true, 0, 48.00, 60, now()),
+       (1002, 21, 'zz21cz3c1', 4, 'Blue Band', null, 'primeng/blue-band.jpg', true, 2, 79.00, 60, 0, now()),
+       (1003, 21, '244wgerg2', 3, 'Blue T-Shirt', null, 'primeng/blue-t-shirt.jpg', true, 25, 29.00, 100, 0, now()),
+       (1004, 21, 'h456wer53', 5, 'Bracelet', null, 'primeng/bracelet.jpg', true, 73, 15.00, 80, 0, now()),
+       (1006, 21, 'bib36pfvm', 5, 'Chakra Bracelet', null, 'primeng/chakra-bracelet.jpg', true, 5, 32.00, 60, 0, now()),
+       (1012, 21, '250vm23cc', 3, 'Green T-Shirt', null, 'primeng/green-t-shirt.jpg', true, 74, 49.00, 100, 0, now()),
+       (1013, 21, 'fldsmn31bt', 3, 'Grey T-Shirt', null, 'primeng/grey-t-shirt.jpg', true, 0, 48.00, 60, 0, now()),
        (1015, 21, 'vb34btbg5', 3, 'Light Green T-Shirt', 'T-Shirt',
-        'primeng/light-green-t-shirt.jpg', true, 34, 49.00, 80, now()),
-       (1016, 21, 'k8l6j58jl', 4, 'Lime Band', 'Fitness watch', 'primeng/lime-band.jpg', true, 12, 79.00, 60, now()),
-       (1019, 21, 'mnb5mb2m5', 4, 'Pink Band', null, 'primeng/pink-band.jpg', true, 63, 79.00, 80, now()),
-       (1021, 21, 'pxpzczo23', 4, 'Purple Band', null, 'primeng/purple-band.jpg', true, 6, 79.00, 60, now()),
+        'primeng/light-green-t-shirt.jpg', true, 34, 49.00, 80, 0, now()),
+       (1016, 21, 'k8l6j58jl', 4, 'Lime Band', 'Fitness watch', 'primeng/lime-band.jpg', true, 12, 79.00, 60, 0, now()),
+       (1019, 21, 'mnb5mb2m5', 4, 'Pink Band', null, 'primeng/pink-band.jpg', true, 63, 79.00, 80, 0, now()),
+       (1021, 21, 'pxpzczo23', 4, 'Purple Band', null, 'primeng/purple-band.jpg', true, 6, 79.00, 60, 0, now()),
        (1022, 21, '2c42cb5cb', 5, 'Purple Gemstone Necklace', 'Necklace',
-        'primeng/purple-gemstone-necklace.jpg', true, 62, 45.00, 80, now()),
-       (1023, 21, '5k43kkk23', 3, 'Purple T-Shirt', null, 'primeng/purple-t-shirt.jpg', true, 2, 49.00, 100, now()),
-       (1024, 21, 'lm2tny2k4', 3, 'Shoes', null, 'primeng/shoes.jpg', true, 0, 64.00, 80, now()),
-       (1025, 21, 'nbm5mv45n', 3, 'Sneakers', null, 'primeng/sneakers.jpg', true, 52, 78.00, 90, now()),
-       (1026, 21, 'zx23zc42c', 3, 'Teal T-Shirt', null, 'primeng/teal-t-shirt.jpg', true, 3, 49.00, 60, now()),
-       (1028, 21, 'tx125ck42', 4, 'Yoga Mat', null, 'primeng/yoga-mat.jpg', true, 15, 19.99, 100, now()),
-       (1029, 21, 'gwuby345v', 4, 'Yoga Set', null, 'primeng/yoga-set.jpg', true, 25, 19.99, 80, now());
+        'primeng/purple-gemstone-necklace.jpg', true, 62, 45.00, 80, 0, now()),
+       (1023, 21, '5k43kkk23', 3, 'Purple T-Shirt', null, 'primeng/purple-t-shirt.jpg', true, 2, 49.00, 100, 0, now()),
+       (1024, 21, 'lm2tny2k4', 3, 'Shoes', null, 'primeng/shoes.jpg', true, 0, 64.00, 80, 0, now()),
+       (1025, 21, 'nbm5mv45n', 3, 'Sneakers', null, 'primeng/sneakers.jpg', true, 52, 78.00, 90, 0, now()),
+       (1026, 21, 'zx23zc42c', 3, 'Teal T-Shirt', null, 'primeng/teal-t-shirt.jpg', true, 3, 49.00, 60, 0, now()),
+       (1028, 21, 'tx125ck42', 4, 'Yoga Mat', null, 'primeng/yoga-mat.jpg', true, 15, 19.99, 100, 0, now()),
+       (1029, 21, 'gwuby345v', 4, 'Yoga Set', null, 'primeng/yoga-set.jpg', true, 25, 19.99, 80, 0, now());
 
 -- -----------------------------------------------------
 -- Product - review data
 -- -----------------------------------------------------
-insert into ec_catalog.product_review(id, product_id, user_id, user_alias, text, date_created)
-values (1, 2, 203, 'Hidden', 'Awesome book', now()),
-       (2, 7, 202, 'Hidden', 'Meow', now()),
-       (3, 7, 203, 'Hidden', 'Excellent beer', now() + 1);
+insert into ec_catalog.product_review(id, product_id, user_id, user_alias, text,
+                                      rating, hidden, approved, banned, date_created)
+values (1, 2, 203, 'Hidden', 'Awesome book', null, false, true, false, now()),
+       (2, 7, 202, 'Hidden', 'Meow', null, false, true, false, now()),
+       (3, 7, 203, 'Hidden', 'Excellent beer', null, false, true, false, now() + 1);

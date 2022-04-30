@@ -36,6 +36,18 @@ public class Review {
     @Column(name = "text", nullable = false)
     private String text;
 
+    @Column(name = "rating")
+    private Integer rating;
+
+    @Column(name = "hidden")
+    private boolean hidden;
+
+    @Column(name = "approved")
+    private boolean approved;
+
+    @Column(name = "banned")
+    private boolean banned;
+
     @Column(name = "date_created", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     @CreationTimestamp
     private OffsetDateTime dateCreated;
