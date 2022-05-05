@@ -32,6 +32,7 @@ create table if not exists ec_identity.user
     enabled                 boolean                                                   not null,
     dealer_representative   boolean                                                   not null,
     dealer_id               bigint                                                    null,
+    user_alias              varchar(100)                                              not null,
     primary key (id),
     constraint un_user_username unique (username),
     constraint fk_user_dealer

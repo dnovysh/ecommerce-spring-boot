@@ -51,21 +51,24 @@ public class User implements UserDetails, CredentialsContainer {
     @JoinColumn(name = "dealer_id", referencedColumnName = "id")
     private Dealer dealer;
 
+    @Column(name = "user_alias", nullable = false)
+    private String userAlias;
+
     @Singular
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_role",
-            joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "id")},
-            inverseJoinColumns = {@JoinColumn(name = "role_id", referencedColumnName = "id")})
+        joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "id")},
+        inverseJoinColumns = {@JoinColumn(name = "role_id", referencedColumnName = "id")})
     private Set<Role> roles;
 
     @Transient
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return this.roles.stream()
-                .map(Role::getAuthorities)
-                .flatMap(Set::stream)
-                .map(authority -> new SimpleGrantedAuthority(authority.getPermission()))
-                .collect(Collectors.toSet());
+            .map(Role::getAuthorities)
+            .flatMap(Set::stream)
+            .map(authority -> new SimpleGrantedAuthority(authority.getPermission()))
+            .collect(Collectors.toSet());
     }
 
     @Override

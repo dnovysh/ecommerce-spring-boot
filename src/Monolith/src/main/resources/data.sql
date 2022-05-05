@@ -17,15 +17,16 @@ insert into ec_identity.user (id, username, password,
                               credentials_non_expired,
                               enabled,
                               dealer_representative,
-                              dealer_id)
-values (1, 'shopocon1', 'shopocon', true, true, true, true, true, 1),
-       (2, 'shopocon2', 'eShopOnContainer', true, true, true, true, true, 1),
-       (101, 'stpete', 'password', true, true, true, true, true, 11),
-       (102, 'dunedin', 'password', true, true, true, true, true, 12),
-       (103, 'keywest', 'password', true, true, true, true, true, 13),
-       (201, 'scott', 'tiger', true, true, true, true, false, null),
-       (202, 'user', 'password', true, true, true, true, false, null),
-       (203, 'buyer', 'shopper', true, true, true, true, false, null);
+                              dealer_id,
+                              user_alias)
+values (1, 'shopocon1', 'shopocon', true, true, true, true, true, 1, 'Admin'),
+       (2, 'shopocon2', 'eShopOnContainer', true, true, true, true, true, 1, 'Shopocon Dealer'),
+       (101, 'stpete', 'password', true, true, true, true, true, 11, 'Stpete'),
+       (102, 'dunedin', 'password', true, true, true, true, true, 12, 'Dunedin'),
+       (103, 'keywest', 'password', true, true, true, true, true, 13, 'Keywest'),
+       (201, 'scott', 'tiger', true, true, true, true, false, null, 'Scott'),
+       (202, 'user', 'password', true, true, true, true, false, null, 'User'),
+       (203, 'buyer', 'shopper', true, true, true, true, false, null, 'Edward');
 
 -- -----------------------------------------------------
 -- Authority data
@@ -128,9 +129,12 @@ values (1, 1, 'BOOK-TECH-1000', 1, 'JavaScript - The Fun Parts', 'Learn JavaScri
        (5, 1, 'BOOK-TECH-1004', 1, 'The Go Programming Language: A to Z', 'Learn Go',
         'luv2code/books/book-luv2code-1004.png', true, 100, 24.99, null, 0, now()),
        -- Spring Guru
-       (6, 11, '0631234200036', 2, 'Mango Bobs', 'IPA', 'placeholder.png', true, 50, 1.99, null, 0, now()),
-       (7, 12, '0631234300019', 2, 'Galaxy Cat', 'PALE ALE', 'placeholder.png', true, 70, 1.59, null, 10000, now()),
-       (8, 13, '0083783375213', 2, 'Pinball Porter', 'PORTER', 'placeholder.png', true, 30, 2.19, null, 0, now()),
+       (6, 11, '0631234200036', 2, 'Mango Bobs', 'IPA - American',
+        'brewery/mango-bobs.jpg', true, 50, 11.99, null, 0, now()),
+       (7, 12, '0631234300019', 2, 'Galaxy Cat', 'DOUBLE IPA',
+        'brewery/galaxy-cat.jpg', true, 70, 15.59, null, 10000, now()),
+       (8, 13, '0083783375213', 2, 'Pinball Porter', 'PORTER - American',
+        'brewery/pinball-porter.jpg', true, 30, 12.19, null, 0, now()),
        -- PrimeNG
        (1002, 21, 'zz21cz3c1', 4, 'Blue Band', null, 'primeng/blue-band.jpg', true, 2, 79.00, 60, 0, now()),
        (1003, 21, '244wgerg2', 3, 'Blue T-Shirt', null, 'primeng/blue-t-shirt.jpg', true, 25, 29.00, 100, 0, now()),
