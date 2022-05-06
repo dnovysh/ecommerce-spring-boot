@@ -22,6 +22,6 @@ public class Authority {
     @Column(name = "permission", nullable = false)
     private String permission;
 
-    @ManyToMany(mappedBy = "authorities")
+    @ManyToMany(mappedBy = "authorities", fetch = FetchType.LAZY)
     private Set<Role> roles;
 }
