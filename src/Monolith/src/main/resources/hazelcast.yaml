@@ -1,0 +1,22 @@
+hazelcast:
+  cluster-name: shopoconDevCluster
+  instance-name: shopocon1
+  management-center:
+    scripting-enabled: false
+  network:
+    port:
+      auto-increment: true
+      port-count: 100
+      port: 5701
+    outbound-ports:
+      - 0
+    join:
+      auto-detection:
+        enabled: false
+      multicast:
+        enabled: false
+      tcp-ip:
+        enabled: true
+        interface: 127.0.0.1
+        member-list:
+          - 127.0.0.1

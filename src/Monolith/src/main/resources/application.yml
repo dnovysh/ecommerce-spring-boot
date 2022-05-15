@@ -1,4 +1,6 @@
 shopocon:
+  web-security:
+    profile: dev
   catalog:
     low-stock-boundary: 5
 
@@ -13,6 +15,7 @@ spring:
   jpa:
     generate-ddl: false
     show-sql: true
+    open-in-view: false
     hibernate:
       ddl-auto: none
     properties:
@@ -25,10 +28,23 @@ spring:
       return-body-on-create: true
       return-body-on-update: true
 
+  session:
+    store-type: hazelcast
+    hazelcast:
+      map-name: 'shopocon:session:sessions'
+
+server:
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        #secure: true
+      timeout: 20m
+
 logging:
   level:
-    root: INFO
+    root: WARN
     # show application of sql database initialization scripts
-    org.springframework.jdbc.datasource.init.ScriptUtils: INFO
+    #org.springframework.jdbc.datasource.init.ScriptUtils: INFO
     # show bind parameters
-    # org.hibernate.type.descriptor.sql: TRACE
+    #org.hibernate.type.descriptor.sql: TRACE

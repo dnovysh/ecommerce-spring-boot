@@ -10,7 +10,8 @@ public class ProductUnitsInStockMapper {
 
     private final int lowStockBoundary;
 
-    public ProductUnitsInStockMapper(@Value("${shopocon.catalog.low-stock: 3}") int lowStockBoundary) {
+    public ProductUnitsInStockMapper(
+        @Value("${shopocon.catalog.low-stock-boundary: 3}") int lowStockBoundary) {
         this.lowStockBoundary = lowStockBoundary;
     }
 
