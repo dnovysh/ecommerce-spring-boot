@@ -14,20 +14,35 @@ import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 
+@SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Value("${spring.data.rest.base-path}")
     private String basePath;
-
     @Value("${shopocon.web-security.profile}")
     private String webSecurityProfile;
-
     @Autowired
     private JwtRequestFilter jwtRequestFilter;
+
+    @Override
+    public void configure(WebSecurity web) {
+        if (isDev()) {
+            web.ignoring()
+                .antMatchers("/v2/api-docs")
+                .antMatchers("/swagger-resources/**")
+                .antMatchers("/swagger-ui.html")
+                .antMatchers("/configuration/**")
+                .antMatchers("/webjars/**")
+                .antMatchers("/static/**")
+                .antMatchers("/public/**")
+                .antMatchers("/h2-console/**");
+        }
+    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -41,12 +56,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             this.basePath + "/catalog-products/**",
             this.basePath + "/catalog-reviews/**",
         };
+
         http.authorizeRequests(authorize -> authorize
                 .antMatchers(commonPermitAllPaths).permitAll()
                 .antMatchers(catalogPermitAllPaths).permitAll()
             )
-            .authorizeRequests()
-            .anyRequest().authenticated().and()
+            .authorizeRequests().anyRequest().authenticated().and()
             .formLogin().disable()
             .httpBasic().disable();
 
@@ -58,20 +73,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .sessionFixation().migrateSession();
 
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
-    }
 
-    @Override
-    public void configure(WebSecurity web) {
-        if ("dev".equals(webSecurityProfile)) {
-            web.ignoring()
-                .antMatchers("/v2/api-docs")
-                .antMatchers("/swagger-resources/**")
-                .antMatchers("/swagger-ui.html")
-                .antMatchers("/configuration/**")
-                .antMatchers("/webjars/**")//
-                .antMatchers("/static/**")
-                .antMatchers("/public/**")
-                .antMatchers("/h2-console/**/**");
+        http.csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
+
+        if (isDev()) {
+            http.headers().frameOptions().sameOrigin();
         }
     }
 
@@ -90,5 +96,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new HttpSessionEventPublisher();
     }
 
-
+    private boolean isDev() {
+        return "dev".equals(webSecurityProfile);
+    }
 }
