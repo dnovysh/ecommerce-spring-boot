@@ -1,6 +1,13 @@
 shopocon:
-  web-security:
+  security:
     profile: dev
+    origins: [ http://localhost:4200 ]
+    jwt:
+      access-token-cookie-name: AuthToken
+      refresh-token-cookie-name: RefreshToken
+      secret: shopoconJwtSecretKey
+      access-token-expiration-min: 30
+      refresh-token-expiration-min: 1440
   catalog:
     low-stock-boundary: 5
 

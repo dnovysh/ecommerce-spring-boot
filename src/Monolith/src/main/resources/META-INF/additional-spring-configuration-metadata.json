@@ -1,0 +1,44 @@
+{
+  "properties": [
+    {
+      "name": "shopocon.security.profile",
+      "type": "java.lang.String",
+      "description": "Description for shopocon.security.profile."
+    },
+    {
+      "name": "shopocon.security.origins",
+      "type": "java.lang.String[]",
+      "description": "Description for shopocon.security.origins."
+    },
+    {
+      "name": "shopocon.catalog.low-stock-boundary",
+      "type": "java.lang.Integer",
+      "description": "Description for shopocon.catalog.low-stock-boundary."
+    },
+    {
+      "name": "shopocon.security.iwt.access-token-cookie-name",
+      "type": "java.lang.String",
+      "description": "Description for shopocon.security.iwt.access-token-cookie-name."
+    },
+    {
+      "name": "shopocon.security.iwt.refresh-token-cookie-name",
+      "type": "java.lang.String",
+      "description": "Description for shopocon.security.iwt.refresh-token-cookie-name."
+    },
+    {
+      "name": "shopocon.security.jwt.secret",
+      "type": "java.lang.String",
+      "description": "Description for shopocon.security.jwt.secret."
+    },
+    {
+      "name": "shopocon.security.jwt.access-token-expiration-min",
+      "type": "java.lang.Long",
+      "description": "Description for shopocon.security.jwt.access-token-expiration-min."
+    },
+    {
+      "name": "shopocon.security.jwt.refresh-token-expiration-min",
+      "type": "java.lang.Long",
+      "description": "Description for shopocon.security.jwt.refresh-token-expiration-min."
+    }
+  ]
+}

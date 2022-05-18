@@ -16,6 +16,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
 
 @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
 @Configuration
@@ -24,8 +29,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Value("${spring.data.rest.base-path}")
     private String basePath;
-    @Value("${shopocon.web-security.profile}")
+
+    @Value("${shopocon.security.profile}")
     private String webSecurityProfile;
+
+    @Value("${shopocon.security.origins}")
+    private String[] allowedOrigins;
+
     @Autowired
     private JwtRequestFilter jwtRequestFilter;
 
@@ -52,10 +62,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             "/resources/static/**", "/resources/templates/**", "/webjars/**",
         };
         final String[] catalogPermitAllPaths = {
-            this.basePath + "/catalog-categories/**",
-            this.basePath + "/catalog-products/**",
-            this.basePath + "/catalog-reviews/**",
+            "%s/catalog-categories/**".formatted(basePath),
+            "%s/catalog-products/**".formatted(basePath),
+            "%s/catalog-reviews/**".formatted(basePath),
         };
+
+        http.cors().and()
+            .csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
 
         http.authorizeRequests(authorize -> authorize
                 .antMatchers(commonPermitAllPaths).permitAll()
@@ -73,8 +86,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .sessionFixation().migrateSession();
 
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
-
-        http.csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
 
         if (isDev()) {
             http.headers().frameOptions().sameOrigin();
@@ -94,6 +105,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public HttpSessionEventPublisher httpSessionEventPublisher() {
         return new HttpSessionEventPublisher();
+    }
+
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("%s/**".formatted(basePath), configuration);
+        return source;
     }
 
     private boolean isDev() {
