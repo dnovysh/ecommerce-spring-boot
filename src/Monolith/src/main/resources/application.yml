@@ -5,8 +5,9 @@ shopocon:
     jwt:
       access-token-cookie-name: AuthToken
       refresh-token-cookie-name: RefreshToken
+      issuer: shopoconIdentityService
       secret: shopoconJwtSecretKey
-      access-token-expiration-min: 30
+      access-token-expiration-min: 15
       refresh-token-expiration-min: 1440
   catalog:
     low-stock-boundary: 5

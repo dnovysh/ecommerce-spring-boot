@@ -26,6 +26,11 @@
       "description": "Description for shopocon.security.iwt.refresh-token-cookie-name."
     },
     {
+      "name": "shopocon.security.jwt.issuer",
+      "type": "java.lang.String",
+      "description": "Description for shopocon.security.jwt.issuer."
+    },
+    {
       "name": "shopocon.security.jwt.secret",
       "type": "java.lang.String",
       "description": "Description for shopocon.security.jwt.secret."
