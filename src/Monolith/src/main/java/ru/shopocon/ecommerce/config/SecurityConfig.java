@@ -57,8 +57,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         final String[] commonPermitAllPaths = {
-            "/", "auth/login", "auth/register", "auth/logout",
-            "auth/signin", "auth/signup", "auth/signout",
+            "/", "auth/signin", "auth/signup", "auth/signout",
             "/resources/static/**", "/resources/templates/**", "/webjars/**",
         };
         final String[] catalogPermitAllPaths = {

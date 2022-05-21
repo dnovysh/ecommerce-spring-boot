@@ -1,7 +1,7 @@
 package ru.shopocon.ecommerce.identity.model;
 
 import lombok.Getter;
-import lombok.NonNull;
+import org.springframework.lang.NonNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -21,8 +21,10 @@ public class UserDetailsJwtDto implements UserDetails, Serializable {
     private final boolean dealerRepresentative;
     private final DealerDto dealer;
     private final String userAlias;
-    private final Set<GrantedAuthority> authorities;
+    @NonNull
     private final Set<String> roles;
+    @NonNull
+    private final Set<GrantedAuthority> authorities;
 
     public UserDetailsJwtDto(Long id,
                              String username,
@@ -33,8 +35,8 @@ public class UserDetailsJwtDto implements UserDetails, Serializable {
                              boolean dealerRepresentative,
                              DealerDto dealer,
                              String userAlias,
-                             @NonNull Set<GrantedAuthority> authorities,
-                             @NonNull Set<String> roles) {
+                             @NonNull Set<String> roles,
+                             @NonNull Set<GrantedAuthority> authorities) {
         this.id = id;
         this.username = username;
         this.accountNonExpired = accountNonExpired;
@@ -44,8 +46,8 @@ public class UserDetailsJwtDto implements UserDetails, Serializable {
         this.dealerRepresentative = dealerRepresentative;
         this.dealer = dealer;
         this.userAlias = userAlias;
-        this.authorities = authorities;
         this.roles = roles;
+        this.authorities = authorities;
     }
 
     @Override

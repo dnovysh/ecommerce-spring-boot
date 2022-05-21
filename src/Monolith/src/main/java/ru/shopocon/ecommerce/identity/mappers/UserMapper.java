@@ -1,11 +1,13 @@
 package ru.shopocon.ecommerce.identity.mappers;
 
-import lombok.val;
+import org.springframework.lang.NonNull;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 import ru.shopocon.ecommerce.identity.domain.security.Role;
 import ru.shopocon.ecommerce.identity.domain.security.User;
 import ru.shopocon.ecommerce.identity.model.DealerDto;
 import ru.shopocon.ecommerce.identity.model.UserDetailsJwtDto;
+import ru.shopocon.ecommerce.identity.model.UserDetailsResponseDto;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -13,16 +15,7 @@ import java.util.stream.Collectors;
 @Component
 public class UserMapper {
 
-    public UserDetailsJwtDto mapToUserDetailsJwtDto(User user) {
-        val dealerDto = new DealerDto(
-            user.getDealer().getId(),
-            user.getDealer().getName()
-        );
-
-        val roles = user.getRoles().stream()
-            .map(Role::getName)
-            .collect(Collectors.toSet());
-
+    public UserDetailsJwtDto mapToUserDetailsJwtDto(@NonNull User user) {
         return new UserDetailsJwtDto(
             user.getId(),
             user.getUsername(),
@@ -31,10 +24,52 @@ public class UserMapper {
             user.isCredentialsNonExpired(),
             user.isEnabled(),
             user.isDealerRepresentative(),
-            dealerDto,
+            createDealerDto(user),
             user.getUserAlias(),
-            Set.copyOf(user.getAuthorities()),
-            roles
+            extractRolesAsStringSet(user),
+            extractAuthorities(user)
         );
+    }
+
+    public UserDetailsResponseDto mapToUserDetailsResponseDto(@NonNull User user) {
+        return new UserDetailsResponseDto(
+            user.getId(),
+            user.getUsername(),
+            user.isAccountNonExpired(),
+            user.isAccountNonLocked(),
+            user.isCredentialsNonExpired(),
+            user.isEnabled(),
+            user.isDealerRepresentative(),
+            createDealerDto(user),
+            user.getUserAlias(),
+            extractRolesAsStringSet(user),
+            extractAuthoritiesAsStringSet(user)
+        );
+    }
+
+    private DealerDto createDealerDto(@NonNull User user) {
+        if (user.getDealer() == null) {
+            return null;
+        }
+        return new DealerDto(
+            user.getDealer().getId(),
+            user.getDealer().getName()
+        );
+    }
+
+    private Set<String> extractRolesAsStringSet(@NonNull User user) {
+        return user.getRoles().stream()
+            .map(Role::getName)
+            .collect(Collectors.toSet());
+    }
+
+    private Set<GrantedAuthority> extractAuthorities(@NonNull User user) {
+        return Set.copyOf(user.getAuthorities());
+    }
+
+    private Set<String> extractAuthoritiesAsStringSet(@NonNull User user) {
+        return user.getAuthorities().stream()
+            .map(GrantedAuthority::getAuthority)
+            .collect(Collectors.toSet());
     }
 }
