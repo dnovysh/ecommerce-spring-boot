@@ -45,7 +45,8 @@ public class UserDetailsServiceJpaImpl implements UserDetailsService, UserDetail
         return userMapper.mapToUserDetailsJwtDto(user);
     }
 
-    private UsernameNotFoundException getUsernameNotFoundException(String uniqueFieldName,
+    @Override
+    public UsernameNotFoundException getUsernameNotFoundException(String uniqueFieldName,
                                                                    String value) {
         return new UsernameNotFoundException("User %s: %s not found".formatted(uniqueFieldName, value));
     }

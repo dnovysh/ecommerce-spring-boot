@@ -7,4 +7,7 @@ public interface UserDetailsJwtService {
     UserDetailsJwtDto loadUserJwtDtoByUsername(String username) throws UsernameNotFoundException;
 
     UserDetailsJwtDto loadUserJwtDtoByUserId(Long id) throws UsernameNotFoundException;
+
+    UsernameNotFoundException getUsernameNotFoundException(String uniqueFieldName,
+                                                           String value);
 }

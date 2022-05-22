@@ -7,7 +7,7 @@ import ru.shopocon.ecommerce.identity.domain.security.Role;
 import ru.shopocon.ecommerce.identity.domain.security.User;
 import ru.shopocon.ecommerce.identity.model.DealerDto;
 import ru.shopocon.ecommerce.identity.model.UserDetailsJwtDto;
-import ru.shopocon.ecommerce.identity.model.UserDetailsResponseDto;
+import ru.shopocon.ecommerce.identity.model.UserResponseDto;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -31,8 +31,8 @@ public class UserMapper {
         );
     }
 
-    public UserDetailsResponseDto mapToUserDetailsResponseDto(@NonNull User user) {
-        return new UserDetailsResponseDto(
+    public UserResponseDto mapToUserResponseDto(@NonNull User user) {
+        return new UserResponseDto(
             user.getId(),
             user.getUsername(),
             user.isAccountNonExpired(),

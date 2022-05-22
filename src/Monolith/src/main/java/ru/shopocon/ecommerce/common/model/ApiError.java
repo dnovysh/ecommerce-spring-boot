@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.Singular;
 import org.springframework.http.HttpStatus;
+import org.springframework.lang.NonNull;
 import ru.shopocon.ecommerce.common.model.types.ApiNestedError;
 
 import java.time.OffsetDateTime;
@@ -35,19 +36,25 @@ public class ApiError {
         this.nestedErrors = new ArrayList<>();
     }
 
-    ApiError(HttpStatus httpStatus) {
+    public ApiError(@NonNull HttpStatus httpStatus) {
         this();
         this.status = httpStatus.value();
         this.error = httpStatus.getReasonPhrase();
+        this.message = "";
+        this.debugMessage = "";
     }
 
-    ApiError(HttpStatus httpStatus, String message, Throwable ex) {
+    public ApiError(@NonNull HttpStatus httpStatus, @NonNull String message) {
         this(httpStatus);
         this.message = message;
+    }
+
+    public ApiError(@NonNull HttpStatus httpStatus, @NonNull String message, @NonNull Throwable ex) {
+        this(httpStatus, message);
         this.debugMessage = ex.getLocalizedMessage();
     }
 
-    ApiError(HttpStatus httpStatus, Throwable ex) {
+    public ApiError(@NonNull HttpStatus httpStatus, @NonNull Throwable ex) {
         this(httpStatus, "Unexpected error", ex);
     }
 }
