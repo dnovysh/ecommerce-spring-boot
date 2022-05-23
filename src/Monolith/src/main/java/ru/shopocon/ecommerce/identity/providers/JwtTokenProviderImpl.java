@@ -7,11 +7,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
+import ru.shopocon.ecommerce.common.util.EncryptionService;
 import ru.shopocon.ecommerce.identity.model.Token;
 import ru.shopocon.ecommerce.identity.model.UserDetailsJwt;
 import ru.shopocon.ecommerce.identity.model.types.TokenType;
 import ru.shopocon.ecommerce.identity.services.UserDetailsServiceJpaImpl;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -24,20 +26,32 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     private final String jwtSecret;
     private final long accessTokenExpirationMin;
     private final long refreshTokenExpirationMin;
+    private final String accessCookieName;
+    private final String refreshCookieName;
+    private final boolean cookieSecure;
 
     private final UserDetailsServiceJpaImpl userDetailsService;
+    private final EncryptionService encryptionService;
 
     public JwtTokenProviderImpl(
-        @Value("${shopocon.security.jwt.issuer}: shopoconIdentityService") String issuer,
-        @Value("${shopocon.security.jwt.secret}: defaultJwtSecretKey") String jwtSecret,
-        @Value("${shopocon.security.jwt.access-token-expiration-min}: 10") Long accessTokenExpirationMin,
-        @Value("${shopocon.security.jwt.refresh-token-expiration-min}: 360") Long refreshTokenExpirationMin,
-        UserDetailsServiceJpaImpl userDetailsService) {
+        @Value("${shopocon.security.jwt.issuer:shopoconIdentityService}") String issuer,
+        @Value("${shopocon.security.jwt.secret:defaultJwtSecretKey}") String jwtSecret,
+        @Value("${shopocon.security.jwt.access-token-expiration-min:10}") Long accessTokenExpirationMin,
+        @Value("${shopocon.security.jwt.refresh-token-expiration-min:360}") Long refreshTokenExpirationMin,
+        @Value("${shopocon.security.jwt.access-cookie-name:AuthJwtAccess}") String accessCookieName,
+        @Value("${shopocon.security.jwt.refresh-cookie-name:AuthJwtRefresh}") String refreshCookieName,
+        @Value("${shopocon.security.jwt.cookie-secure:true}") boolean cookieSecure,
+        UserDetailsServiceJpaImpl userDetailsService,
+        EncryptionService encryptionService) {
         this.issuer = issuer;
         this.jwtSecret = jwtSecret;
         this.accessTokenExpirationMin = accessTokenExpirationMin;
         this.refreshTokenExpirationMin = refreshTokenExpirationMin;
+        this.accessCookieName = accessCookieName;
+        this.refreshCookieName = refreshCookieName;
+        this.cookieSecure = cookieSecure;
         this.userDetailsService = userDetailsService;
+        this.encryptionService = encryptionService;
     }
 
     @Override
@@ -47,7 +61,7 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
 
     @Override
     public Authentication getAuthentication(String token) {
-        UserDetailsJwt userDetails = userDetailsService.loadUserJwtDtoByUsername(getUsername(token));
+        UserDetailsJwt userDetails = userDetailsService.loadUserDetailsJwtByUsername(getUsername(token));
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
@@ -89,12 +103,42 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
         return createToken(user, TokenType.REFRESH, OffsetDateTime.now());
     }
 
+    @Override
+    public Cookie createCookie(Token token, boolean rememberMe) {
+        String cookieName = (token.getTokenType() == TokenType.ACCESS) ?
+            accessCookieName : refreshCookieName;
+        String encryptedToken = encryptionService.encrypt(token.getValue());
+        final Cookie cookie = new Cookie(cookieName, encryptedToken);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(cookieSecure);
+        cookie.setPath("/");
+        if (rememberMe) {
+            int maxAge = Math.toIntExact(token.getDuration());
+            cookie.setMaxAge(maxAge);
+        }
+        return cookie;
+    }
+
+    @Override
+    public Cookie createAccessCookie(UserDetailsJwt userDetailsJwt, boolean rememberMe) {
+        final Token token = createAccessToken(userDetailsJwt);
+        return createCookie(token, rememberMe);
+    }
+
+    @Override
+    public Cookie createRefreshCookie(UserDetailsJwt userDetailsJwt, boolean rememberMe) {
+        final Token token = createRefreshToken(userDetailsJwt);
+        return createCookie(token, rememberMe);
+    }
+
     private Token createToken(UserDetailsJwt user,
                               TokenType tokenType,
                               OffsetDateTime issuedAt) {
-        final long duration = (tokenType == TokenType.REFRESH)
-            ? refreshTokenExpirationMin : accessTokenExpirationMin;
-        val expiration = issuedAt.plusMinutes(duration);
+        final long duration = 60 * (
+            (tokenType == TokenType.REFRESH)
+                ? refreshTokenExpirationMin : accessTokenExpirationMin
+        );
+        val expiration = issuedAt.plusSeconds(duration);
         final Claims claims = Jwts.claims().setSubject(user.getUsername());
         claims.put("userDetails", user);
         claims.put("issuedAt", issuedAt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));

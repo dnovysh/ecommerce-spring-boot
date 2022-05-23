@@ -3,8 +3,9 @@ shopocon:
     profile: dev
     origins: [ http://localhost:4200 ]
     jwt:
-      access-token-cookie-name: AuthToken
-      refresh-token-cookie-name: RefreshToken
+      access-cookie-name: AUTHJWTA
+      refresh-cookie-name: AUTHJWTR
+      cookie-secure: false
       issuer: shopoconIdentityService
       secret: shopoconJwtSecretKey
       access-token-expiration-min: 15

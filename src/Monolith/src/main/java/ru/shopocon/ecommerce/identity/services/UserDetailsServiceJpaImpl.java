@@ -31,7 +31,7 @@ public class UserDetailsServiceJpaImpl implements UserDetailsService, UserDetail
 
     @Override
     @Transactional
-    public UserDetailsJwt loadUserJwtDtoByUsername(String username) throws UsernameNotFoundException {
+    public UserDetailsJwt loadUserDetailsJwtByUsername(String username) throws UsernameNotFoundException {
         val user = userRepository.findByUsername(username).orElseThrow(() ->
             getUsernameNotFoundException("name", username));
         return userMapper.mapToUserDetailsJwt(user);
@@ -39,7 +39,7 @@ public class UserDetailsServiceJpaImpl implements UserDetailsService, UserDetail
 
     @Override
     @Transactional
-    public UserDetailsJwt loadUserJwtDtoByUserId(Long id) throws UsernameNotFoundException {
+    public UserDetailsJwt loadUserDetailsJwtByUserId(Long id) throws UsernameNotFoundException {
         val user = userRepository.findById(id).orElseThrow(() ->
             getUsernameNotFoundException("id", id.toString()));
         return userMapper.mapToUserDetailsJwt(user);
@@ -47,7 +47,7 @@ public class UserDetailsServiceJpaImpl implements UserDetailsService, UserDetail
 
     @Override
     public UsernameNotFoundException getUsernameNotFoundException(String uniqueFieldName,
-                                                                   String value) {
+                                                                  String value) {
         return new UsernameNotFoundException("User %s: %s not found".formatted(uniqueFieldName, value));
     }
 }

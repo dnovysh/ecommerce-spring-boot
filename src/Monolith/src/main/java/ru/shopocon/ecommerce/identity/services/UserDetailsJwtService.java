@@ -4,9 +4,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import ru.shopocon.ecommerce.identity.model.UserDetailsJwt;
 
 public interface UserDetailsJwtService {
-    UserDetailsJwt loadUserJwtDtoByUsername(String username) throws UsernameNotFoundException;
+    UserDetailsJwt loadUserDetailsJwtByUsername(String username) throws UsernameNotFoundException;
 
-    UserDetailsJwt loadUserJwtDtoByUserId(Long id) throws UsernameNotFoundException;
+    UserDetailsJwt loadUserDetailsJwtByUserId(Long id) throws UsernameNotFoundException;
 
     UsernameNotFoundException getUsernameNotFoundException(String uniqueFieldName,
                                                            String value);

@@ -2,7 +2,6 @@ package ru.shopocon.ecommerce.identity.controllers;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import ru.shopocon.ecommerce.identity.model.SignInRequest;
@@ -10,6 +9,7 @@ import ru.shopocon.ecommerce.identity.model.SignInResponse;
 import ru.shopocon.ecommerce.identity.model.types.TokenType;
 import ru.shopocon.ecommerce.identity.services.AuthService;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.security.Principal;
 
@@ -32,15 +32,14 @@ public class AuthController {
         @CookieValue(name = TokenType.Constants.REFRESH_TOKEN_NAME, required = false)
             String existingRefreshToken,
         @Valid @RequestBody SignInRequest signInRequest,
+        HttpServletResponse response,
         Authentication existingAuthentication,
         Principal existingPrincipal
     ) {
         if (existingAuthentication.isAuthenticated() && existingPrincipal != null) {
             return authService.createAlreadySignedInResponse(existingPrincipal);
         }
-        return authService.signIn(signInRequest, existingAccessToken, existingRefreshToken);
-
-        // ToDo remember me
+        return authService.signIn(signInRequest, response, existingAccessToken, existingRefreshToken);
     }
 
 }

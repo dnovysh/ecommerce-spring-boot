@@ -2,7 +2,6 @@ package ru.shopocon.ecommerce.identity.services;
 
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
@@ -19,10 +18,15 @@ import ru.shopocon.ecommerce.common.model.ApiError;
 import ru.shopocon.ecommerce.common.util.EncryptionService;
 import ru.shopocon.ecommerce.identity.domain.security.User;
 import ru.shopocon.ecommerce.identity.mappers.UserMapper;
-import ru.shopocon.ecommerce.identity.model.*;
+import ru.shopocon.ecommerce.identity.model.SignInRequest;
+import ru.shopocon.ecommerce.identity.model.SignInResponse;
+import ru.shopocon.ecommerce.identity.model.UserDetailsJwt;
+import ru.shopocon.ecommerce.identity.model.UserResponseDto;
 import ru.shopocon.ecommerce.identity.providers.JwtTokenProvider;
 import ru.shopocon.ecommerce.identity.repositories.UserJpaRepository;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import java.security.Principal;
 
 @Slf4j
@@ -30,7 +34,6 @@ import java.security.Principal;
 public class AuthServiceImpl implements AuthService {
 
     private final UserJpaRepository userRepository;
-    private final UserDetailsJwtService userDetailsJwtService;
     private final UserMapper userMapper;
     private final EncryptionService encryptionService;
     private final AuthenticationManager authenticationManager;
@@ -43,14 +46,15 @@ public class AuthServiceImpl implements AuthService {
                            AuthenticationManager authenticationManager,
                            JwtTokenProvider tokenProvider) {
         this.userRepository = userRepository;
-        this.userDetailsJwtService = userDetailsJwtService;
         this.userMapper = userMapper;
         this.encryptionService = encryptionService;
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
     }
 
+    @Override
     public ResponseEntity<SignInResponse> signIn(SignInRequest signInRequest,
+                                                 HttpServletResponse response,
                                                  String existingAccessToken,
                                                  String existingRefreshToken) {
         logExistingTokenWarnIfIncorrect("signIn", existingAccessToken, existingRefreshToken);
@@ -77,16 +81,14 @@ public class AuthServiceImpl implements AuthService {
             return ResponseEntity.internalServerError().body(new SignInResponse(error));
         }
         final UserDetailsJwt userDetailsJwt = userMapper.mapToUserDetailsJwt(user);
-        Token accessToken = tokenProvider.createAccessToken(userDetailsJwt);
-        String encryptedAccessToken = encryptionService.encrypt(accessToken.getValue());
-        Token refreshToken = tokenProvider.createRefreshToken(userDetailsJwt);
-        String encryptedRefreshToken = encryptionService.encrypt(refreshToken.getValue());
         final UserResponseDto userResponse = userMapper.mapToUserResponseDto(user);
-        val signInResponse = new SignInResponse(userResponse);
-        return  ResponseEntity.
-
-
-
+        final Cookie accessCookie = tokenProvider
+            .createAccessCookie(userDetailsJwt, signInRequest.isRememberMe());
+        final Cookie refreshCookie = tokenProvider
+            .createRefreshCookie(userDetailsJwt, signInRequest.isRememberMe());
+        response.addCookie(accessCookie);
+        response.addCookie(refreshCookie);
+        return ResponseEntity.ok(new SignInResponse(userResponse));
     }
 
     @Override
@@ -137,18 +139,20 @@ public class AuthServiceImpl implements AuthService {
 
     private void logExistingTokenWarnIfIncorrect(String methodName, String accessToken, String refreshToken) {
         if (accessToken != null) {
-            log.warn("[%s] Access token exists but user is not logged in".formatted(methodName));
             final String decryptedAccessToken = encryptionService.decrypt(accessToken);
             if (!tokenProvider.validateToken(decryptedAccessToken)) {
                 log.warn("[%s] Access token is invalid".formatted(methodName));
             }
+            // ToDo check expiring
+            log.warn("[%s] Access token exists but user is not logged in".formatted(methodName));
         }
         if (refreshToken != null) {
-            log.warn("[%s] Refresh token exists but user is not logged in".formatted(methodName));
             final String decryptedRefreshToken = encryptionService.decrypt(refreshToken);
             if (!tokenProvider.validateToken(decryptedRefreshToken)) {
                 log.warn("[%s] Refresh token is invalid".formatted(methodName));
             }
+            // ToDo check expiring
+            log.warn("[%s] Refresh token exists but user is not logged in".formatted(methodName));
         }
     }
 }
