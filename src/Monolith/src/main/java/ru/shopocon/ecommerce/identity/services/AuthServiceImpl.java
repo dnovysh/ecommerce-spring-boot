@@ -2,17 +2,25 @@ package ru.shopocon.ecommerce.identity.services;
 
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import ru.shopocon.ecommerce.common.model.ApiError;
+import ru.shopocon.ecommerce.common.util.EncryptionService;
 import ru.shopocon.ecommerce.identity.domain.security.User;
 import ru.shopocon.ecommerce.identity.mappers.UserMapper;
-import ru.shopocon.ecommerce.identity.model.SignInResponse;
-import ru.shopocon.ecommerce.identity.model.UserResponseDto;
+import ru.shopocon.ecommerce.identity.model.*;
+import ru.shopocon.ecommerce.identity.providers.JwtTokenProvider;
 import ru.shopocon.ecommerce.identity.repositories.UserJpaRepository;
 
 import java.security.Principal;
@@ -24,13 +32,69 @@ public class AuthServiceImpl implements AuthService {
     private final UserJpaRepository userRepository;
     private final UserDetailsJwtService userDetailsJwtService;
     private final UserMapper userMapper;
+    private final EncryptionService encryptionService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtTokenProvider tokenProvider;
 
     public AuthServiceImpl(UserJpaRepository userRepository,
                            UserDetailsJwtService userDetailsJwtService,
-                           UserMapper userMapper) {
+                           UserMapper userMapper,
+                           EncryptionService encryptionService,
+                           AuthenticationManager authenticationManager,
+                           JwtTokenProvider tokenProvider) {
         this.userRepository = userRepository;
         this.userDetailsJwtService = userDetailsJwtService;
         this.userMapper = userMapper;
+        this.encryptionService = encryptionService;
+        this.authenticationManager = authenticationManager;
+        this.tokenProvider = tokenProvider;
+    }
+
+    public ResponseEntity<SignInResponse> signIn(SignInRequest signInRequest,
+                                                 String existingAccessToken,
+                                                 String existingRefreshToken) {
+        logExistingTokenWarnIfIncorrect("signIn", existingAccessToken, existingRefreshToken);
+        User user;
+        try {
+            Authentication authentication = setContextAuthentication(
+                signInRequest.getUsername(),
+                signInRequest.getPassword()
+            );
+            user = (User) authentication.getPrincipal();
+        } catch (DisabledException ex) {
+            val error = new ApiError(HttpStatus.BAD_REQUEST, "The account is disabled");
+            return ResponseEntity.badRequest().body(new SignInResponse(error));
+        } catch (LockedException ex) {
+            val error = new ApiError(HttpStatus.BAD_REQUEST, "The account is locked");
+            return ResponseEntity.badRequest().body(new SignInResponse(error));
+        } catch (AuthenticationException ex) {
+            val error = new ApiError(HttpStatus.BAD_REQUEST, "The username or password is incorrect");
+            return ResponseEntity.badRequest().body(new SignInResponse(error));
+        } catch (ClassCastException ex) {
+            log.error(ex.getLocalizedMessage());
+            val error = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR,
+                "Something went wrong, try again later or contact support");
+            return ResponseEntity.internalServerError().body(new SignInResponse(error));
+        }
+        final UserDetailsJwt userDetailsJwt = userMapper.mapToUserDetailsJwt(user);
+        Token accessToken = tokenProvider.createAccessToken(userDetailsJwt);
+        String encryptedAccessToken = encryptionService.encrypt(accessToken.getValue());
+        Token refreshToken = tokenProvider.createRefreshToken(userDetailsJwt);
+        String encryptedRefreshToken = encryptionService.encrypt(refreshToken.getValue());
+        final UserResponseDto userResponse = userMapper.mapToUserResponseDto(user);
+        val signInResponse = new SignInResponse(userResponse);
+        return  ResponseEntity.
+
+
+
+    }
+
+    @Override
+    public Authentication setContextAuthentication(String username, String password) {
+        final Authentication authentication = authenticationManager
+            .authenticate(new UsernamePasswordAuthenticationToken(username, password));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        return authentication;
     }
 
     @Override
@@ -40,7 +104,7 @@ public class AuthServiceImpl implements AuthService {
             log.error("Already signed in with the wrong principal");
             val error = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR,
                 "Something went wrong, try to sign out or contact support");
-            val signInResponse = new SignInResponse(null, error);
+            val signInResponse = new SignInResponse(error);
             return ResponseEntity.internalServerError().body(signInResponse);
         }
         final UserResponseDto userResponse = userMapper.mapToUserResponseDto(user);
@@ -68,6 +132,23 @@ public class AuthServiceImpl implements AuthService {
                 return null;
             }
             return optionalUser.orElseThrow();
+        }
+    }
+
+    private void logExistingTokenWarnIfIncorrect(String methodName, String accessToken, String refreshToken) {
+        if (accessToken != null) {
+            log.warn("[%s] Access token exists but user is not logged in".formatted(methodName));
+            final String decryptedAccessToken = encryptionService.decrypt(accessToken);
+            if (!tokenProvider.validateToken(decryptedAccessToken)) {
+                log.warn("[%s] Access token is invalid".formatted(methodName));
+            }
+        }
+        if (refreshToken != null) {
+            log.warn("[%s] Refresh token exists but user is not logged in".formatted(methodName));
+            final String decryptedRefreshToken = encryptionService.decrypt(refreshToken);
+            if (!tokenProvider.validateToken(decryptedRefreshToken)) {
+                log.warn("[%s] Refresh token is invalid".formatted(methodName));
+            }
         }
     }
 }

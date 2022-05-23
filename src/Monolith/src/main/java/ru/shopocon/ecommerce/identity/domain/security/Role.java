@@ -5,8 +5,13 @@ import lombok.*;
 import javax.persistence.*;
 import java.util.Set;
 
+/**
+ * Application metadata, adding, modifying, and deleting operations are prohibited
+ */
+@SuppressWarnings("com.haulmont.jpb.LombokEqualsAndHashCodeInspection")
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Getter
 @Setter
 @Builder
@@ -14,11 +19,11 @@ import java.util.Set;
 @Table(name = "role", schema = "ec_identity")
 public class Role {
 
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     @Column(name = "id")
     private Long id;
 
+    @EqualsAndHashCode.Include
     @Column(name = "name", nullable = false)
     private String name;
 

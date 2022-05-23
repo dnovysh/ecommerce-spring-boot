@@ -8,7 +8,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import ru.shopocon.ecommerce.identity.mappers.UserMapper;
-import ru.shopocon.ecommerce.identity.model.UserDetailsJwtDto;
+import ru.shopocon.ecommerce.identity.model.UserDetailsJwt;
 import ru.shopocon.ecommerce.identity.repositories.UserJpaRepository;
 
 import javax.transaction.Transactional;
@@ -31,18 +31,18 @@ public class UserDetailsServiceJpaImpl implements UserDetailsService, UserDetail
 
     @Override
     @Transactional
-    public UserDetailsJwtDto loadUserJwtDtoByUsername(String username) throws UsernameNotFoundException {
+    public UserDetailsJwt loadUserJwtDtoByUsername(String username) throws UsernameNotFoundException {
         val user = userRepository.findByUsername(username).orElseThrow(() ->
             getUsernameNotFoundException("name", username));
-        return userMapper.mapToUserDetailsJwtDto(user);
+        return userMapper.mapToUserDetailsJwt(user);
     }
 
     @Override
     @Transactional
-    public UserDetailsJwtDto loadUserJwtDtoByUserId(Long id) throws UsernameNotFoundException {
+    public UserDetailsJwt loadUserJwtDtoByUserId(Long id) throws UsernameNotFoundException {
         val user = userRepository.findById(id).orElseThrow(() ->
             getUsernameNotFoundException("id", id.toString()));
-        return userMapper.mapToUserDetailsJwtDto(user);
+        return userMapper.mapToUserDetailsJwt(user);
     }
 
     @Override

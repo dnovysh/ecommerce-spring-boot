@@ -5,12 +5,16 @@ import org.springframework.lang.NonNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Set;
 
 @Getter
-public class UserDetailsJwtDto implements UserDetails, Serializable {
+public class UserDetailsJwt implements UserDetails, Serializable {
+    @Serial
+    private static final long serialVersionUID = 46390446L;
+
     private final Long id;
     private final String password = "User password not provided by token";
     private final String username;
@@ -26,17 +30,17 @@ public class UserDetailsJwtDto implements UserDetails, Serializable {
     @NonNull
     private final Set<GrantedAuthority> authorities;
 
-    public UserDetailsJwtDto(Long id,
-                             String username,
-                             boolean accountNonExpired,
-                             boolean accountNonLocked,
-                             boolean credentialsNonExpired,
-                             boolean enabled,
-                             boolean dealerRepresentative,
-                             DealerDto dealer,
-                             String userAlias,
-                             @NonNull Set<String> roles,
-                             @NonNull Set<GrantedAuthority> authorities) {
+    public UserDetailsJwt(Long id,
+                          String username,
+                          boolean accountNonExpired,
+                          boolean accountNonLocked,
+                          boolean credentialsNonExpired,
+                          boolean enabled,
+                          boolean dealerRepresentative,
+                          DealerDto dealer,
+                          String userAlias,
+                          @NonNull Set<String> roles,
+                          @NonNull Set<GrantedAuthority> authorities) {
         this.id = id;
         this.username = username;
         this.accountNonExpired = accountNonExpired;

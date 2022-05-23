@@ -22,6 +22,8 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import ru.shopocon.ecommerce.common.util.EncryptionService;
+import ru.shopocon.ecommerce.common.util.EncryptionServiceImpl;
 
 import java.util.Arrays;
 
@@ -131,6 +133,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("%s/**".formatted(basePath), configuration);
         return source;
+    }
+
+    @Bean
+    public EncryptionService encryptionService() {
+        return new EncryptionServiceImpl();
     }
 
     private boolean isDev() {

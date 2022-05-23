@@ -1,8 +1,5 @@
-package ru.shopocon.ecommerce.identity.services;
+package ru.shopocon.ecommerce.common.util;
 
-import org.springframework.stereotype.Service;
-
-@Service
 public class EncryptionServiceImpl implements EncryptionService {
     @Override
     public String encrypt(String value) {

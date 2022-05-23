@@ -2,7 +2,7 @@ package ru.shopocon.ecommerce.identity.providers;
 
 import org.springframework.security.core.Authentication;
 import ru.shopocon.ecommerce.identity.model.Token;
-import ru.shopocon.ecommerce.identity.model.UserDetailsJwtDto;
+import ru.shopocon.ecommerce.identity.model.UserDetailsJwt;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -16,7 +16,7 @@ public interface JwtTokenProvider {
 
     boolean validateToken(String token);
 
-    Token createAccessToken(UserDetailsJwtDto user);
+    Token createAccessToken(UserDetailsJwt user);
 
-    Token createRefreshToken(UserDetailsJwtDto user);
+    Token createRefreshToken(UserDetailsJwt user);
 }

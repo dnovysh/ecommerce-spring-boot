@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import ru.shopocon.ecommerce.identity.domain.security.Role;
 import ru.shopocon.ecommerce.identity.domain.security.User;
 import ru.shopocon.ecommerce.identity.model.DealerDto;
-import ru.shopocon.ecommerce.identity.model.UserDetailsJwtDto;
+import ru.shopocon.ecommerce.identity.model.UserDetailsJwt;
 import ru.shopocon.ecommerce.identity.model.UserResponseDto;
 
 import java.util.Set;
@@ -15,8 +15,8 @@ import java.util.stream.Collectors;
 @Component
 public class UserMapper {
 
-    public UserDetailsJwtDto mapToUserDetailsJwtDto(@NonNull User user) {
-        return new UserDetailsJwtDto(
+    public UserDetailsJwt mapToUserDetailsJwt(@NonNull User user) {
+        return new UserDetailsJwt(
             user.getId(),
             user.getUsername(),
             user.isAccountNonExpired(),

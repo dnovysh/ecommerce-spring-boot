@@ -13,4 +13,9 @@ public class Token {
     private String value;
     private long duration;
     private OffsetDateTime expiration;
+
+    @Override
+    public String toString() {
+        return value;
+    }
 }

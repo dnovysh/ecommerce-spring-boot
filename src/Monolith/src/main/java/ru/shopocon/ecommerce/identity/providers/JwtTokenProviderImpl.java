@@ -8,7 +8,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import ru.shopocon.ecommerce.identity.model.Token;
-import ru.shopocon.ecommerce.identity.model.UserDetailsJwtDto;
+import ru.shopocon.ecommerce.identity.model.UserDetailsJwt;
 import ru.shopocon.ecommerce.identity.model.types.TokenType;
 import ru.shopocon.ecommerce.identity.services.UserDetailsServiceJpaImpl;
 
@@ -47,7 +47,7 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
 
     @Override
     public Authentication getAuthentication(String token) {
-        UserDetailsJwtDto userDetails = userDetailsService.loadUserJwtDtoByUsername(getUsername(token));
+        UserDetailsJwt userDetails = userDetailsService.loadUserJwtDtoByUsername(getUsername(token));
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
@@ -80,16 +80,16 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     }
 
     @Override
-    public Token createAccessToken(UserDetailsJwtDto user) {
+    public Token createAccessToken(UserDetailsJwt user) {
         return createToken(user, TokenType.ACCESS, OffsetDateTime.now());
     }
 
     @Override
-    public Token createRefreshToken(UserDetailsJwtDto user) {
+    public Token createRefreshToken(UserDetailsJwt user) {
         return createToken(user, TokenType.REFRESH, OffsetDateTime.now());
     }
 
-    private Token createToken(UserDetailsJwtDto user,
+    private Token createToken(UserDetailsJwt user,
                               TokenType tokenType,
                               OffsetDateTime issuedAt) {
         final long duration = (tokenType == TokenType.REFRESH)

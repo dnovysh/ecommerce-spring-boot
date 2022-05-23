@@ -1,4 +1,4 @@
-package ru.shopocon.ecommerce.identity.services;
+package ru.shopocon.ecommerce.common.util;
 
 public interface EncryptionService {
 
