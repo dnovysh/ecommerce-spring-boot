@@ -1,9 +1,7 @@
 package ru.shopocon.ecommerce.common.model;
 
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.Singular;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import ru.shopocon.ecommerce.common.model.types.ApiNestedError;
@@ -13,12 +11,15 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-@Builder(toBuilder = true)
 public class ApiError {
+    @Getter
     private int status;
+    @Getter
     private String error;
-    private String isoOffsetDateTime;
-    private long timestamp;
+    @Getter
+    private final String isoOffsetDateTime;
+    @Getter
+    private final long timestamp;
     @Getter
     @Setter
     private String message;
@@ -26,8 +27,7 @@ public class ApiError {
     @Setter
     private String debugMessage;
     @Getter
-    @Singular
-    private List<ApiNestedError> nestedErrors;
+    private final List<ApiNestedError> nestedErrors;
 
     private ApiError() {
         final var now = OffsetDateTime.now();
@@ -56,5 +56,10 @@ public class ApiError {
 
     public ApiError(@NonNull HttpStatus httpStatus, @NonNull Throwable ex) {
         this(httpStatus, "Unexpected error", ex);
+    }
+
+    public ApiError addApiNestedError(@NonNull ApiNestedError nestedError) {
+        nestedErrors.add(nestedError);
+        return this;
     }
 }

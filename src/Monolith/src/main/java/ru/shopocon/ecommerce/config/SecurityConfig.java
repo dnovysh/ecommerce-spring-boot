@@ -24,8 +24,10 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import ru.shopocon.ecommerce.common.util.EncryptionService;
 import ru.shopocon.ecommerce.common.util.EncryptionServiceImpl;
+import ru.shopocon.ecommerce.config.filters.JwtRequestFilter;
 
 import java.util.Arrays;
+import java.util.List;
 
 @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
 @Configuration
@@ -39,7 +41,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private String webSecurityProfile;
 
     @Value("${shopocon.security.origins}")
-    private String[] allowedOrigins;
+    private List<String> allowedOrigins;
 
     @Autowired
     private UserDetailsService userDetailsService;
@@ -129,16 +131,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins));
+        configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("%s/**".formatted(basePath), configuration);
         return source;
-    }
-
-    @Bean
-    public EncryptionService encryptionService() {
-        return new EncryptionServiceImpl();
     }
 
     private boolean isDev() {

@@ -52,9 +52,11 @@ public class Product {
     @Column(name = "image")
     private String image;
 
+    @Builder.Default
     @Column(name = "active", nullable = false)
     private boolean active = true;
 
+    @Builder.Default
     @Column(name = "units_in_stock", nullable = false)
     private int unitsInStock = 0;
 

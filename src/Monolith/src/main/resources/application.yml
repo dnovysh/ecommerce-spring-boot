@@ -1,7 +1,7 @@
 shopocon:
   security:
     profile: dev
-    origins: [ http://localhost:4200 ]
+    origins: http://localhost:4200
     jwt:
       access-cookie-name: AUTHJWTA
       refresh-cookie-name: AUTHJWTR

@@ -10,11 +10,15 @@ import javax.servlet.http.HttpServletRequest;
 
 public interface JwtTokenProvider {
 
-    String getUsername(String token);
+//    String getUsername(String token);
+//
+//    Authentication getAuthentication(String token);
 
-    Authentication getAuthentication(String token);
+    String getBearerToken(HttpServletRequest request);
 
-    String resolveBearerToken(HttpServletRequest request);
+    String extractAccessTokenFromCookie(HttpServletRequest request);
+
+    String extractRefreshTokenFromCookie(HttpServletRequest request);
 
     boolean validateEncryptedToken(String encryptedToken);
 

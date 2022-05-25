@@ -16,6 +16,21 @@
       "description": "Description for shopocon.catalog.low-stock-boundary."
     },
     {
+      "name": "shopocon.security.jwt.access-cookie-name",
+      "type": "java.lang.String",
+      "description": "Description for shopocon.security.jwt.access-cookie-name."
+    },
+    {
+      "name": "shopocon.security.jwt.refresh-cookie-name",
+      "type": "java.lang.String",
+      "description": "Description for shopocon.security.jwt.refresh-cookie-name."
+    },
+    {
+      "name": "shopocon.security.jwt.cookie-secure",
+      "type": "java.lang.Boolean",
+      "description": "Description for shopocon.security.jwt.cookie-secure."
+    },
+    {
       "name": "shopocon.security.iwt.access-token-cookie-name",
       "type": "java.lang.String",
       "description": "Description for shopocon.security.iwt.access-token-cookie-name."

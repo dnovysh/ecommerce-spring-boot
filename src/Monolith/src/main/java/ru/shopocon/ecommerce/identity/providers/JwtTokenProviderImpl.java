@@ -4,16 +4,16 @@ import io.jsonwebtoken.*;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.WebUtils;
 import ru.shopocon.ecommerce.common.util.EncryptionService;
+import ru.shopocon.ecommerce.common.util.StringUtils;
 import ru.shopocon.ecommerce.identity.model.JwtGetBodyDto;
 import ru.shopocon.ecommerce.identity.model.Token;
 import ru.shopocon.ecommerce.identity.model.UserDetailsJwt;
 import ru.shopocon.ecommerce.identity.model.types.JwtTokenValidationStatus;
 import ru.shopocon.ecommerce.identity.model.types.TokenType;
-import ru.shopocon.ecommerce.identity.services.UserDetailsServiceJpaImpl;
+//import ru.shopocon.ecommerce.identity.services.UserDetailsServiceJpaImpl;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -32,7 +32,7 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     private final String refreshCookieName;
     private final boolean cookieSecure;
 
-    private final UserDetailsServiceJpaImpl userDetailsService;
+//    private final UserDetailsServiceJpaImpl userDetailsService;
     private final EncryptionService encryptionService;
 
     public JwtTokenProviderImpl(
@@ -43,7 +43,7 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
         @Value("${shopocon.security.jwt.access-cookie-name:AuthJwtAccess}") String accessCookieName,
         @Value("${shopocon.security.jwt.refresh-cookie-name:AuthJwtRefresh}") String refreshCookieName,
         @Value("${shopocon.security.jwt.cookie-secure:true}") boolean cookieSecure,
-        UserDetailsServiceJpaImpl userDetailsService,
+//        UserDetailsServiceJpaImpl userDetailsService,
         EncryptionService encryptionService) {
         this.issuer = issuer;
         this.jwtSecret = jwtSecret;
@@ -52,28 +52,41 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
         this.accessCookieName = accessCookieName;
         this.refreshCookieName = refreshCookieName;
         this.cookieSecure = cookieSecure;
-        this.userDetailsService = userDetailsService;
+//        this.userDetailsService = userDetailsService;
         this.encryptionService = encryptionService;
     }
 
-    @Override
-    public String getUsername(String token) {
-        return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody().getSubject();
-    }
+//    @Override
+//    public String getUsername(String token) {
+//        return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody().getSubject();
+//    }
+//
+//    @Override
+//    public Authentication getAuthentication(String token) {
+//        UserDetailsJwt userDetails = userDetailsService.loadUserDetailsJwtByUsername(getUsername(token));
+//        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+//    }
 
     @Override
-    public Authentication getAuthentication(String token) {
-        UserDetailsJwt userDetails = userDetailsService.loadUserDetailsJwtByUsername(getUsername(token));
-        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
-    }
-
-    @Override
-    public String resolveBearerToken(HttpServletRequest request) {
+    public String getBearerToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return encryptionService.decrypt(bearerToken.substring(7));
+            final String encryptedToken = bearerToken.substring(7);
+            if (StringUtils.isNotBlank(encryptedToken)) {
+                return encryptionService.decrypt(encryptedToken);
+            }
         }
         return null;
+    }
+
+    @Override
+    public String extractAccessTokenFromCookie(HttpServletRequest request) {
+        return extractTokenFromCookie(request, accessCookieName);
+    }
+
+    @Override
+    public String extractRefreshTokenFromCookie(HttpServletRequest request) {
+        return extractTokenFromCookie(request, refreshCookieName);
     }
 
     @Override
@@ -206,5 +219,17 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
             .signWith(SignatureAlgorithm.HS512, jwtSecret)
             .compact();
         return new Token(tokenType, token, duration, expiration);
+    }
+
+    private String extractTokenFromCookie(HttpServletRequest request, String cookieName) {
+        final Cookie cookie = WebUtils.getCookie(request, cookieName);
+        if (cookie == null) {
+            return null;
+        }
+        final String encryptedToken = cookie.getValue();
+        if (StringUtils.isBlank(encryptedToken)) {
+            return null;
+        }
+        return encryptionService.decrypt(encryptedToken);
     }
 }

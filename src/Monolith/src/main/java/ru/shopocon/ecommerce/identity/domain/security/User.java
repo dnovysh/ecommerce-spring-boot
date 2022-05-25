@@ -32,18 +32,23 @@ public class User implements UserDetails, CredentialsContainer {
     @Column(name = "password", nullable = false)
     private String password;
 
+    @Builder.Default
     @Column(name = "account_non_expired", nullable = false)
     private boolean accountNonExpired = true;
 
+    @Builder.Default
     @Column(name = "account_non_locked", nullable = false)
     private boolean accountNonLocked = true;
 
+    @Builder.Default
     @Column(name = "credentials_non_expired", nullable = false)
     private boolean credentialsNonExpired = true;
 
+    @Builder.Default
     @Column(name = "enabled", nullable = false)
     private boolean enabled = true;
 
+    @Builder.Default
     @Column(name = "dealer_representative", nullable = false)
     private boolean dealerRepresentative = false;
 
