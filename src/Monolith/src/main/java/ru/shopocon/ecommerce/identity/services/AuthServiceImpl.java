@@ -15,13 +15,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import ru.shopocon.ecommerce.common.model.ApiError;
-import ru.shopocon.ecommerce.common.util.EncryptionService;
 import ru.shopocon.ecommerce.identity.domain.security.User;
 import ru.shopocon.ecommerce.identity.mappers.UserMapper;
-import ru.shopocon.ecommerce.identity.model.SignInRequest;
-import ru.shopocon.ecommerce.identity.model.SignInResponse;
-import ru.shopocon.ecommerce.identity.model.UserDetailsJwt;
-import ru.shopocon.ecommerce.identity.model.UserResponseDto;
+import ru.shopocon.ecommerce.identity.model.*;
+import ru.shopocon.ecommerce.identity.model.types.JwtTokenValidationStatus;
 import ru.shopocon.ecommerce.identity.providers.JwtTokenProvider;
 import ru.shopocon.ecommerce.identity.repositories.UserJpaRepository;
 
@@ -35,19 +32,16 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserJpaRepository userRepository;
     private final UserMapper userMapper;
-    private final EncryptionService encryptionService;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
 
     public AuthServiceImpl(UserJpaRepository userRepository,
                            UserDetailsJwtService userDetailsJwtService,
                            UserMapper userMapper,
-                           EncryptionService encryptionService,
                            AuthenticationManager authenticationManager,
                            JwtTokenProvider tokenProvider) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
-        this.encryptionService = encryptionService;
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
     }
@@ -55,9 +49,10 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public ResponseEntity<SignInResponse> signIn(SignInRequest signInRequest,
                                                  HttpServletResponse response,
-                                                 String existingAccessToken,
-                                                 String existingRefreshToken) {
-        logExistingTokenWarnIfIncorrect("signIn", existingAccessToken, existingRefreshToken);
+                                                 String existingEncryptedAccessToken,
+                                                 String existingEncryptedRefreshToken) {
+        logExistingTokenWarnIfIncorrect("signIn",
+            existingEncryptedAccessToken, existingEncryptedRefreshToken);
         User user;
         try {
             Authentication authentication = setContextAuthentication(
@@ -137,22 +132,23 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-    private void logExistingTokenWarnIfIncorrect(String methodName, String accessToken, String refreshToken) {
-        if (accessToken != null) {
-            final String decryptedAccessToken = encryptionService.decrypt(accessToken);
-            if (!tokenProvider.validateToken(decryptedAccessToken)) {
-                log.warn("[%s] Access token is invalid".formatted(methodName));
+    private void logExistingTokenWarnIfIncorrect(String methodName,
+                                                 String encryptedAccessToken,
+                                                 String encryptedRefreshToken) {
+        logTokenWarnIfIncorrect(methodName, encryptedAccessToken, "Access");
+        logTokenWarnIfIncorrect(methodName, encryptedRefreshToken, "Refresh");
+    }
+
+    private void logTokenWarnIfIncorrect(String methodName, String encryptedToken, String tokenAlias) {
+        if (encryptedToken != null) {
+            final JwtGetBodyDto tokenBody = tokenProvider.getBodyFromEncryptedToken(encryptedToken);
+            final JwtTokenValidationStatus status = tokenBody.status();
+            if (status == JwtTokenValidationStatus.SUCCESS) {
+                log.error("[%s] %s token is valid but user (id=%s) is not logged in"
+                    .formatted(methodName, tokenAlias, tokenBody.userDetailsJwt().getId()));
+            } else if (status != JwtTokenValidationStatus.EXPIRED_JWT_EXCEPTION) {
+                log.error("[%s] %s token is invalid".formatted(methodName, tokenAlias));
             }
-            // ToDo check expiring
-            log.warn("[%s] Access token exists but user is not logged in".formatted(methodName));
-        }
-        if (refreshToken != null) {
-            final String decryptedRefreshToken = encryptionService.decrypt(refreshToken);
-            if (!tokenProvider.validateToken(decryptedRefreshToken)) {
-                log.warn("[%s] Refresh token is invalid".formatted(methodName));
-            }
-            // ToDo check expiring
-            log.warn("[%s] Refresh token exists but user is not logged in".formatted(methodName));
         }
     }
 }

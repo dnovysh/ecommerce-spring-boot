@@ -8,8 +8,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import ru.shopocon.ecommerce.common.util.EncryptionService;
+import ru.shopocon.ecommerce.identity.model.JwtGetBodyDto;
 import ru.shopocon.ecommerce.identity.model.Token;
 import ru.shopocon.ecommerce.identity.model.UserDetailsJwt;
+import ru.shopocon.ecommerce.identity.model.types.JwtTokenValidationStatus;
 import ru.shopocon.ecommerce.identity.model.types.TokenType;
 import ru.shopocon.ecommerce.identity.services.UserDetailsServiceJpaImpl;
 
@@ -66,12 +68,18 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     }
 
     @Override
-    public String resolveToken(HttpServletRequest request) {
+    public String resolveBearerToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
+            return encryptionService.decrypt(bearerToken.substring(7));
         }
         return null;
+    }
+
+    @Override
+    public boolean validateEncryptedToken(String encryptedToken) {
+        final String token = encryptionService.decrypt(encryptedToken);
+        return validateToken(token);
     }
 
     @Override
@@ -80,17 +88,63 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
             Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token);
             return true;
         } catch (SignatureException ex) {
-            log.warn("Invalid JWT Signature");
+            log.error("Invalid JWT Signature: {}", ex.getMessage());
         } catch (MalformedJwtException ex) {
-            log.warn("Invalid JWT token");
+            log.error("Invalid JWT token: {}", ex.getMessage());
         } catch (ExpiredJwtException ex) {
-            log.warn("Expired JWT token");
+            log.warn("Expired JWT token: {}", ex.getMessage());
         } catch (UnsupportedJwtException ex) {
-            log.warn("Unsupported JWT exception");
+            log.error("Unsupported JWT exception: {}", ex.getMessage());
         } catch (IllegalArgumentException ex) {
-            log.warn("Jwt claims string is empty");
+            log.error("Jwt claims string is empty: {}", ex.getMessage());
         }
         return false;
+    }
+
+    @Override
+    public JwtGetBodyDto getBodyFromEncryptedToken(String encryptedToken) {
+        final String token = encryptionService.decrypt(encryptedToken);
+        return getBody(token);
+    }
+
+    @Override
+    public JwtGetBodyDto getBody(String token) {
+        try {
+            Claims claims = Jwts.parser().setSigningKey(jwtSecret)
+                .parseClaimsJws(token)
+                .getBody();
+            val userDetails = claims.get("userDetails", UserDetailsJwt.class);
+            if (userDetails == null) {
+                log.error("Empty user details");
+                return new JwtGetBodyDto(JwtTokenValidationStatus.EMPTY_USER_DETAILS);
+            }
+            return new JwtGetBodyDto(
+                JwtTokenValidationStatus.SUCCESS,
+                claims.getSubject(),
+                userDetails,
+                OffsetDateTime.parse(claims.get("issuedAt", String.class),
+                    DateTimeFormatter.ISO_OFFSET_DATE_TIME),
+                OffsetDateTime.parse(claims.get("expiration", String.class),
+                    DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+        } catch (SignatureException ex) {
+            log.error("Invalid JWT Signature: {}", ex.getMessage());
+            return new JwtGetBodyDto(JwtTokenValidationStatus.SIGNATURE_EXCEPTION);
+        } catch (MalformedJwtException ex) {
+            log.error("Invalid JWT token: {}", ex.getMessage());
+            return new JwtGetBodyDto(JwtTokenValidationStatus.MALFORMED_JWT_EXCEPTION);
+        } catch (ExpiredJwtException ex) {
+            log.warn("Expired JWT token: {}", ex.getMessage());
+            return new JwtGetBodyDto(JwtTokenValidationStatus.EXPIRED_JWT_EXCEPTION);
+        } catch (UnsupportedJwtException ex) {
+            log.error("Unsupported JWT exception: {}", ex.getMessage());
+            return new JwtGetBodyDto(JwtTokenValidationStatus.UNSUPPORTED_JWT_EXCEPTION);
+        } catch (IllegalArgumentException ex) {
+            log.error("Jwt claims string is empty: {}", ex.getMessage());
+            return new JwtGetBodyDto(JwtTokenValidationStatus.ILLEGAL_ARGUMENT_EXCEPTION);
+        } catch (ClassCastException ex) {
+            log.error("Jwt class cast exception: {}", ex.getLocalizedMessage());
+            return new JwtGetBodyDto(JwtTokenValidationStatus.CLASS_CAST_EXCEPTION);
+        }
     }
 
     @Override

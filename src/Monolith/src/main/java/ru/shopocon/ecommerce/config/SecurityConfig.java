@@ -77,7 +77,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.cors().and()
             .csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
 
-        http.authorizeRequests(authorize -> authorize
+        http.exceptionHandling().and()
+            .authorizeRequests(authorize -> authorize
                 .antMatchers(commonPermitAllPaths).permitAll()
                 .antMatchers(catalogPermitAllPaths).permitAll()
             )
@@ -87,7 +88,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         http.sessionManagement()
             .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-            .maximumSessions(3)
+            .maximumSessions(5)
             .maxSessionsPreventsLogin(true)
             .sessionRegistry(sessionRegistry()).and()
             .sessionFixation().migrateSession();

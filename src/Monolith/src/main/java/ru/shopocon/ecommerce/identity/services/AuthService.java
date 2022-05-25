@@ -14,8 +14,8 @@ public interface AuthService {
 
     ResponseEntity<SignInResponse> signIn(SignInRequest signInRequest,
                                           HttpServletResponse response,
-                                          String existingAccessToken,
-                                          String existingRefreshToken);
+                                          String existingEncryptedAccessToken,
+                                          String existingEncryptedRefreshToken);
 
     Authentication setContextAuthentication(String username, String password);
 

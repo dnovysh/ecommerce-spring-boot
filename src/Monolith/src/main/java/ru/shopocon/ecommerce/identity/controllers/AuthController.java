@@ -28,9 +28,9 @@ public class AuthController {
         produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<SignInResponse> signIn(
         @CookieValue(name = TokenType.Constants.ACCESS_TOKEN_NAME, required = false)
-            String existingAccessToken,
+            String existingEncryptedAccessToken,
         @CookieValue(name = TokenType.Constants.REFRESH_TOKEN_NAME, required = false)
-            String existingRefreshToken,
+            String existingEncryptedRefreshToken,
         @Valid @RequestBody SignInRequest signInRequest,
         HttpServletResponse response,
         Authentication existingAuthentication,
@@ -39,7 +39,8 @@ public class AuthController {
         if (existingAuthentication.isAuthenticated() && existingPrincipal != null) {
             return authService.createAlreadySignedInResponse(existingPrincipal);
         }
-        return authService.signIn(signInRequest, response, existingAccessToken, existingRefreshToken);
+        return authService.signIn(signInRequest, response,
+            existingEncryptedAccessToken, existingEncryptedRefreshToken);
     }
 
 }
