@@ -16,14 +16,14 @@ import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import ru.shopocon.ecommerce.common.util.EncryptionService;
-import ru.shopocon.ecommerce.common.util.EncryptionServiceImpl;
+import ru.shopocon.ecommerce.common.exception.entrypoints.AuthenticationEntryPointImpl;
 import ru.shopocon.ecommerce.config.filters.JwtRequestFilter;
 
 import java.util.Arrays;
@@ -42,6 +42,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Value("${shopocon.security.origins}")
     private List<String> allowedOrigins;
+
+    @Value("${server.servlet.session.cookie.name}")
+    private String sessionIdCookieName;
 
     @Autowired
     private UserDetailsService userDetailsService;
@@ -95,6 +98,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .sessionRegistry(sessionRegistry()).and()
             .sessionFixation().migrateSession();
 
+        http.logout()
+            .logoutUrl("auth/signout")
+            .clearAuthentication(true)
+            .invalidateHttpSession(true)
+            .deleteCookies(sessionIdCookieName);
+
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         if (isDev()) {
@@ -105,6 +114,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
+    }
+
+    @Bean
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+        return new AuthenticationEntryPointImpl();
     }
 
     @Bean

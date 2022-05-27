@@ -23,6 +23,7 @@ import ru.shopocon.ecommerce.identity.providers.JwtTokenProvider;
 import ru.shopocon.ecommerce.identity.repositories.UserJpaRepository;
 
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.security.Principal;
 
@@ -85,6 +86,16 @@ public class AuthServiceImpl implements AuthService {
         response.addCookie(refreshCookie);
         return ResponseEntity.ok(new SignInResponse(userResponse));
     }
+
+    @Override
+    public ResponseEntity<SignInResponse> signOut(HttpServletRequest request,
+                                                  HttpServletResponse response) {
+
+
+
+
+    }
+
 
     @Override
     public Authentication setContextAuthentication(String username, String password) {

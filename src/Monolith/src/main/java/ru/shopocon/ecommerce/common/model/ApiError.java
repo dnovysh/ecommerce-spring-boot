@@ -13,21 +13,21 @@ import java.util.List;
 
 public class ApiError {
     @Getter
-    private int status;
-    @Getter
-    private String error;
-    @Getter
     private final String isoOffsetDateTime;
     @Getter
     private final long timestamp;
+    @Getter
+    private final List<ApiNestedError> nestedErrors;
+    @Getter
+    private int status;
+    @Getter
+    private String error;
     @Getter
     @Setter
     private String message;
     @Getter
     @Setter
     private String debugMessage;
-    @Getter
-    private final List<ApiNestedError> nestedErrors;
 
     private ApiError() {
         final var now = OffsetDateTime.now();
@@ -58,8 +58,11 @@ public class ApiError {
         this(httpStatus, "Unexpected error", ex);
     }
 
-    public ApiError addApiNestedError(@NonNull ApiNestedError nestedError) {
+    public void addApiNestedError(@NonNull ApiNestedError nestedError) {
         nestedErrors.add(nestedError);
-        return this;
+    }
+
+    public HttpStatus getHttpStatus() {
+        return HttpStatus.valueOf(status);
     }
 }

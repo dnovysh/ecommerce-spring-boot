@@ -21,6 +21,9 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
+// ToDo clear comments
+
+
 @Slf4j
 @Component
 public class JwtTokenProviderImpl implements JwtTokenProvider {
@@ -31,8 +34,9 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     private final String accessCookieName;
     private final String refreshCookieName;
     private final boolean cookieSecure;
+    private final String cookiePath = "/";
 
-//    private final UserDetailsServiceJpaImpl userDetailsService;
+    //    private final UserDetailsServiceJpaImpl userDetailsService;
     private final EncryptionService encryptionService;
 
     public JwtTokenProviderImpl(
@@ -178,7 +182,7 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
         final Cookie cookie = new Cookie(cookieName, encryptedToken);
         cookie.setHttpOnly(true);
         cookie.setSecure(cookieSecure);
-        cookie.setPath("/");
+        cookie.setPath(cookiePath);
         if (rememberMe) {
             int maxAge = Math.toIntExact(token.getDuration());
             cookie.setMaxAge(maxAge);
@@ -196,6 +200,18 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     public Cookie createRefreshCookie(UserDetailsJwt userDetailsJwt, boolean rememberMe) {
         final Token token = createRefreshToken(userDetailsJwt);
         return createCookie(token, rememberMe);
+    }
+
+    public Cookie createCleanCookie(String cookieName) {
+
+    }
+
+    public Cookie createCleanAccessCookie() {
+
+    }
+
+    public Cookie createCleanRefreshCookie() {
+
     }
 
     private Token createToken(UserDetailsJwt user,

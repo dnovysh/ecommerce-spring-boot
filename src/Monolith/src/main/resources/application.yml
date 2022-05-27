@@ -47,6 +47,7 @@ server:
     context-path: /api
     session:
       cookie:
+        name: JSESSIONID
         http-only: true
         #secure: true
       timeout: 20m
