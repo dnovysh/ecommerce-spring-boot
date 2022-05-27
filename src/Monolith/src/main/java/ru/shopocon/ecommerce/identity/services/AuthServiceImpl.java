@@ -15,6 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import ru.shopocon.ecommerce.common.model.ApiError;
+import ru.shopocon.ecommerce.common.util.StringUtils;
 import ru.shopocon.ecommerce.identity.domain.security.User;
 import ru.shopocon.ecommerce.identity.mappers.UserMapper;
 import ru.shopocon.ecommerce.identity.model.*;
@@ -22,9 +23,11 @@ import ru.shopocon.ecommerce.identity.model.types.JwtTokenValidationStatus;
 import ru.shopocon.ecommerce.identity.providers.JwtTokenProvider;
 import ru.shopocon.ecommerce.identity.repositories.UserJpaRepository;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.security.Principal;
 
 @Slf4j
@@ -88,14 +91,53 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseEntity<SignInResponse> signOut(HttpServletRequest request,
-                                                  HttpServletResponse response) {
-
-
-
-
+    public ResponseEntity<SignOutResponse> signOut(HttpServletRequest request,
+                                                   HttpServletResponse response) {
+        final HttpSession session = request.getSession(false);
+        if (session != null) {
+            try {
+                request.logout();
+            } catch (ServletException ex) {
+                log.error("Session logout error {}", ex.getMessage());
+            }
+        }
+        tokenProvider.addAccessCleanCookie(response);
+        tokenProvider.addRefreshCleanCookieIfRememberMeFalse(request, response);
+        return ResponseEntity.ok(new SignOutResponse("You've been signed out"));
     }
 
+    @Override
+    public ResponseEntity<RefreshResponse> refresh(String encryptedRefreshToken,
+                                                   HttpServletRequest request,
+                                                   HttpServletResponse response,
+                                                   Authentication authentication,
+                                                   Principal principal) {
+        if (authentication.isAuthenticated() && principal != null) {
+            final User user = obtainUserFromPrincipal(principal);
+            if (user == null) {
+                log.error("Signed in with the wrong principal");
+                return ResponseEntity.badRequest().body(createBadRequestRefreshResponse());
+            }
+            final UserResponseDto userResponse = userMapper.mapToUserResponseDto(user);
+            return ResponseEntity.ok(new RefreshResponse(userResponse));
+        }
+        if (StringUtils.isNotBlank(encryptedRefreshToken)) {
+            final JwtGetBodyDto tokenBody = tokenProvider.getBodyFromEncryptedToken(encryptedRefreshToken);
+            if (tokenBody.status() == JwtTokenValidationStatus.SUCCESS) {
+                val optionalUser = userRepository.findByUsername(tokenBody.username());
+                if (optionalUser.isPresent()) {
+                    val user = optionalUser.get();
+                    final UserDetailsJwt userDetailsJwt = userMapper.mapToUserDetailsJwt(user);
+                    final UserResponseDto userResponse = userMapper.mapToUserResponseDto(user);
+                    boolean rememberMe = tokenProvider.getRememberMeByRefreshCookieMaxAge(request);
+                    final Cookie accessCookie = tokenProvider.createAccessCookie(userDetailsJwt, rememberMe);
+                    response.addCookie(accessCookie);
+                    return ResponseEntity.ok(new RefreshResponse(userResponse));
+                }
+            }
+        }
+        return ResponseEntity.badRequest().body(createBadRequestRefreshResponse());
+    }
 
     @Override
     public Authentication setContextAuthentication(String username, String password) {
@@ -126,20 +168,18 @@ public class AuthServiceImpl implements AuthService {
     public User obtainUserFromPrincipal(@NonNull Principal principal) {
         if (principal instanceof UserDetails userDetails) {
             val optionalUser = userRepository.findByUsername(userDetails.getUsername());
-            if (optionalUser.isEmpty()) {
+            return optionalUser.orElseGet(() -> {
                 log.error("UserDetails does not have a valid username");
                 return null;
-            }
-            return optionalUser.orElseThrow();
+            });
         } else {
             log.error("Principal object is not an instance of UserDetails");
             val username = principal.getName();
             val optionalUser = userRepository.findByUsername(username);
-            if (optionalUser.isEmpty()) {
+            return optionalUser.orElseGet(() -> {
                 log.error("Principal object does not have a valid username");
                 return null;
-            }
-            return optionalUser.orElseThrow();
+            });
         }
     }
 
@@ -151,7 +191,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private void logTokenWarnIfIncorrect(String methodName, String encryptedToken, String tokenAlias) {
-        if (encryptedToken != null) {
+        if (StringUtils.isNotBlank(encryptedToken)) {
             final JwtGetBodyDto tokenBody = tokenProvider.getBodyFromEncryptedToken(encryptedToken);
             final JwtTokenValidationStatus status = tokenBody.status();
             if (status == JwtTokenValidationStatus.SUCCESS) {
@@ -161,5 +201,10 @@ public class AuthServiceImpl implements AuthService {
                 log.error("[%s] %s token is invalid".formatted(methodName, tokenAlias));
             }
         }
+    }
+
+    private RefreshResponse createBadRequestRefreshResponse() {
+        val error = new ApiError(HttpStatus.BAD_REQUEST);
+        return new RefreshResponse(error);
     }
 }

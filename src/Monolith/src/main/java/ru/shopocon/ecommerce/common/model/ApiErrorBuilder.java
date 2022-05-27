@@ -3,6 +3,7 @@ package ru.shopocon.ecommerce.common.model;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import ru.shopocon.ecommerce.common.model.types.ApiNestedError;
+import ru.shopocon.ecommerce.common.model.types.RequiredActionType;
 
 public final class ApiErrorBuilder {
 
@@ -26,6 +27,11 @@ public final class ApiErrorBuilder {
 
     public ApiErrorBuilder setDebugMessage(String debugMessage) {
         apiError.setDebugMessage(debugMessage);
+        return this;
+    }
+
+    public ApiErrorBuilder setRequiredAction(RequiredActionType requiredAction) {
+        apiError.setRequiredAction(requiredAction);
         return this;
     }
 

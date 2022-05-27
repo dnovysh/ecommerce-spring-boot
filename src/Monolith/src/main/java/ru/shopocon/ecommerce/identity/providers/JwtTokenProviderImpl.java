@@ -17,8 +17,10 @@ import ru.shopocon.ecommerce.identity.model.types.TokenType;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Date;
 
 // ToDo clear comments
@@ -159,8 +161,11 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
             log.error("Jwt claims string is empty: {}", ex.getMessage());
             return new JwtGetBodyDto(JwtTokenValidationStatus.ILLEGAL_ARGUMENT_EXCEPTION);
         } catch (ClassCastException ex) {
-            log.error("Jwt class cast exception: {}", ex.getLocalizedMessage());
+            log.error("Jwt class cast exception: {}", ex.getMessage());
             return new JwtGetBodyDto(JwtTokenValidationStatus.CLASS_CAST_EXCEPTION);
+        } catch (RuntimeException ex) {
+            log.error("Unknown exception: {}", ex.getMessage());
+            return new JwtGetBodyDto(JwtTokenValidationStatus.UNKNOWN_RUNTIME_EXCEPTION);
         }
     }
 
@@ -202,16 +207,31 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
         return createCookie(token, rememberMe);
     }
 
-    public Cookie createCleanCookie(String cookieName) {
-
+    @Override
+    public void addAccessCleanCookie(HttpServletResponse response) {
+        response.addCookie(createAccessCleanCookie());
     }
 
-    public Cookie createCleanAccessCookie() {
-
+    @Override
+    public void addRefreshCleanCookieIfRememberMeFalse(HttpServletRequest request,
+                                                       HttpServletResponse response) {
+        Arrays.stream(request.getCookies())
+            .filter((c) -> refreshCookieName.equals(c.getName()))
+            .forEach((c) -> {
+                if (c.getMaxAge() < 0) {
+                    response.addCookie(createRefreshCleanCookie());
+                }
+            });
     }
 
-    public Cookie createCleanRefreshCookie() {
-
+    @Override
+    public boolean getRememberMeByRefreshCookieMaxAge(HttpServletRequest request) {
+        return Arrays.stream(request.getCookies())
+            .filter((c) -> refreshCookieName.equals(c.getName()))
+            .findFirst()
+            .map(Cookie::getMaxAge)
+            .map(maxAge -> maxAge > 0)
+            .orElse(false);
     }
 
     private Token createToken(UserDetailsJwt user,
@@ -247,5 +267,22 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
             return null;
         }
         return encryptionService.decrypt(encryptedToken);
+    }
+
+    private Cookie createCleanCookie(String cookieName) {
+        final Cookie cookie = new Cookie(cookieName, "");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(cookieSecure);
+        cookie.setPath(cookiePath);
+        cookie.setMaxAge(0);
+        return cookie;
+    }
+
+    private Cookie createAccessCleanCookie() {
+        return createCleanCookie(accessCookieName);
+    }
+
+    private Cookie createRefreshCleanCookie() {
+        return createCleanCookie(refreshCookieName);
     }
 }

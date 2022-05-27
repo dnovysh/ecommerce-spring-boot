@@ -7,6 +7,7 @@ import ru.shopocon.ecommerce.identity.model.UserDetailsJwt;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 public interface JwtTokenProvider {
 
@@ -37,4 +38,11 @@ public interface JwtTokenProvider {
     Cookie createAccessCookie(UserDetailsJwt userDetailsJwt, boolean rememberMe);
 
     Cookie createRefreshCookie(UserDetailsJwt userDetailsJwt, boolean rememberMe);
+
+    void addAccessCleanCookie(HttpServletResponse response);
+
+    void addRefreshCleanCookieIfRememberMeFalse(HttpServletRequest request,
+                                                HttpServletResponse response);
+
+    boolean getRememberMeByRefreshCookieMaxAge(HttpServletRequest request);
 }
