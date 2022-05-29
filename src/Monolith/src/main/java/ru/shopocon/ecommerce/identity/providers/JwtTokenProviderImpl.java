@@ -13,7 +13,6 @@ import ru.shopocon.ecommerce.identity.model.Token;
 import ru.shopocon.ecommerce.identity.model.UserDetailsJwt;
 import ru.shopocon.ecommerce.identity.model.types.JwtTokenValidationStatus;
 import ru.shopocon.ecommerce.identity.model.types.TokenType;
-//import ru.shopocon.ecommerce.identity.services.UserDetailsServiceJpaImpl;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -22,8 +21,6 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Date;
-
-// ToDo clear comments
 
 
 @Slf4j
@@ -38,7 +35,6 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     private final boolean cookieSecure;
     private final String cookiePath = "/";
 
-    //    private final UserDetailsServiceJpaImpl userDetailsService;
     private final EncryptionService encryptionService;
 
     public JwtTokenProviderImpl(
@@ -49,7 +45,6 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
         @Value("${shopocon.security.jwt.access-cookie-name:AuthJwtAccess}") String accessCookieName,
         @Value("${shopocon.security.jwt.refresh-cookie-name:AuthJwtRefresh}") String refreshCookieName,
         @Value("${shopocon.security.jwt.cookie-secure:true}") boolean cookieSecure,
-//        UserDetailsServiceJpaImpl userDetailsService,
         EncryptionService encryptionService) {
         this.issuer = issuer;
         this.jwtSecret = jwtSecret;
@@ -58,20 +53,8 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
         this.accessCookieName = accessCookieName;
         this.refreshCookieName = refreshCookieName;
         this.cookieSecure = cookieSecure;
-//        this.userDetailsService = userDetailsService;
         this.encryptionService = encryptionService;
     }
-
-//    @Override
-//    public String getUsername(String token) {
-//        return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody().getSubject();
-//    }
-//
-//    @Override
-//    public Authentication getAuthentication(String token) {
-//        UserDetailsJwt userDetails = userDetailsService.loadUserDetailsJwtByUsername(getUsername(token));
-//        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
-//    }
 
     @Override
     public String getBearerToken(HttpServletRequest request) {

@@ -30,13 +30,18 @@ public final class ApiErrorBuilder {
         return this;
     }
 
-    public ApiErrorBuilder setRequiredAction(RequiredActionType requiredAction) {
-        apiError.setRequiredAction(requiredAction);
+    public ApiErrorBuilder setDebugMessage(Throwable ex) {
+        apiError.setDebugMessage(ex.getLocalizedMessage());
         return this;
     }
 
-    public ApiErrorBuilder setDebugMessage(Throwable ex) {
-        apiError.setDebugMessage(ex.getLocalizedMessage());
+    public ApiErrorBuilder setPath(String path) {
+        apiError.setPath(path);
+        return this;
+    }
+
+    public ApiErrorBuilder setRequiredAction(RequiredActionType requiredAction) {
+        apiError.setRequiredAction(requiredAction);
         return this;
     }
 

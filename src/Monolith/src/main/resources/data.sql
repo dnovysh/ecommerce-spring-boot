@@ -19,14 +19,22 @@ insert into ec_identity.user (id, username, password,
                               dealer_representative,
                               dealer_id,
                               user_alias)
-values (1, 'shopocon1', 'shopocon', true, true, true, true, true, 1, 'Admin'),
-       (2, 'shopocon2', 'eShopOnContainer', true, true, true, true, true, 1, 'Shopocon Dealer'),
-       (101, 'stpete', 'password', true, true, true, true, true, 11, 'Stpete'),
-       (102, 'dunedin', 'password', true, true, true, true, true, 12, 'Dunedin'),
-       (103, 'keywest', 'password', true, true, true, true, true, 13, 'Keywest'),
-       (201, 'scott', 'tiger', true, true, true, true, false, null, 'Scott'),
-       (202, 'user', 'password', true, true, true, true, false, null, 'User'),
-       (203, 'buyer', 'shopper', true, true, true, true, false, null, 'Edward');
+values (1, 'shopocon1@shopocon.com', '$2a$12$jVMuAb2oXwyugDwTYZiBNOv829gja/.PtUdWckhIFuSUIuuhSAJMa',
+        true, true, true, true, true, 1, 'Admin'),
+       (2, 'shopocon2shopocon.com', '$2a$12$5T6nLjVIxNnQmaL7LH2WDevAvnbY.9efAFqPN2OugbxVytCZ64So6',
+        true, true, true, true, true, 1, 'Shopocon Dealer'),
+       (101, 'stpete@stpete.com', '$2a$12$TqpXmzpEJXeHwgbpAm61X.izRSLcNGZ7joG0laQ2NZgWrvGaWF0sm',
+        true, true, true, true, true, 11, 'Stpete'),
+       (102, 'dunedin@dunedin.com', '$2a$12$TqpXmzpEJXeHwgbpAm61X.izRSLcNGZ7joG0laQ2NZgWrvGaWF0sm',
+        true, true, true, true, true, 12, 'Dunedin'),
+       (103, 'keywest@keywest.com', '$2a$12$TqpXmzpEJXeHwgbpAm61X.izRSLcNGZ7joG0laQ2NZgWrvGaWF0sm',
+        true, true, true, true, true, 13, 'Keywest'),
+       (201, 'scott@oracle.com', '$2a$12$F6RWX/UpzjUWTIjyglTnxuPmt.hDiVzQMT5/d8kaqCRRj/rTXNW2q',
+        true, true, true, true, false, null, 'Scott'),
+       (202, 'user@example.com', '$2a$12$TqpXmzpEJXeHwgbpAm61X.izRSLcNGZ7joG0laQ2NZgWrvGaWF0sm',
+        true, true, true, true, false, null, 'User'),
+       (203, 'buyer@example.com', '$2a$12$lKL85D6.STxo7XgvswNMze/xtxlOOxoc1QEfDhYm3vv47Sq9LSl5S',
+        true, true, true, true, false, null, 'Edward');
 
 -- -----------------------------------------------------
 -- Authority data

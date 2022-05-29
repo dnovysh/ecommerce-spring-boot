@@ -70,8 +70,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         final String[] commonPermitAllPaths = {
-            "/", "auth/signin", "auth/signup", "auth/signout",
+            "/", "/error",
             "/resources/static/**", "/resources/templates/**", "/webjars/**",
+        };
+        final String[] identityPermitAllPaths = {
+            "%s/auth/signin".formatted(basePath),
+            "%s/auth/signup".formatted(basePath),
+            "%s/auth/signout".formatted(basePath),
+            "%s/auth/refresh".formatted(basePath)
         };
         final String[] catalogPermitAllPaths = {
             "%s/catalog-categories/**".formatted(basePath),
@@ -82,9 +88,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.cors().and()
             .csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
 
-        http.exceptionHandling().and()
+        http.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint()).and()
             .authorizeRequests(authorize -> authorize
                 .antMatchers(commonPermitAllPaths).permitAll()
+                .antMatchers(identityPermitAllPaths).permitAll()
                 .antMatchers(catalogPermitAllPaths).permitAll()
             )
             .authorizeRequests().anyRequest().authenticated().and()
@@ -123,7 +130,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(12);
     }
 
     @Bean

@@ -17,7 +17,8 @@ import javax.validation.Valid;
 import java.security.Principal;
 
 @RestController
-@RequestMapping("/auth")
+//@BasePathAwareController
+@RequestMapping("${spring.data.rest.base-path}/auth")
 public class AuthController {
 
     private final AuthService authService;
@@ -39,7 +40,9 @@ public class AuthController {
         Authentication existingAuthentication,
         Principal existingPrincipal
     ) {
-        if (existingAuthentication.isAuthenticated() && existingPrincipal != null) {
+        if (existingAuthentication != null &&
+            existingAuthentication.isAuthenticated()
+            && existingPrincipal != null) {
             return authService.createAlreadySignedInResponse(existingPrincipal);
         }
         return authService.signIn(signInRequest, response,

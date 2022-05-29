@@ -21,14 +21,15 @@ public class AuthenticationEntryPointImpl implements AuthenticationEntryPoint {
     public void commence(HttpServletRequest request,
                          HttpServletResponse response,
                          AuthenticationException authException) throws IOException, ServletException {
-        log.error("Unauthorized error: {}", authException.getMessage());
+        log.error("Authentication Entry Point", authException);
 
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
         final ApiError error = ApiErrorBuilder.builder(HttpStatus.UNAUTHORIZED)
-            .setMessage("Unauthorized access attempt, path - %s".formatted(request.getServletPath()))
+            .setMessage("Unauthorized access attempt")
             .setDebugMessage(authException.getMessage())
+            .setPath(request.getServletPath())
             .build();
 
         final ObjectMapper mapper = new ObjectMapper();

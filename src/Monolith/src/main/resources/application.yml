@@ -42,9 +42,13 @@ spring:
     hazelcast:
       map-name: 'shopocon:session:sessions'
 
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
 server:
   servlet:
-    context-path: /api
+    context-path: /
     session:
       cookie:
         name: JSESSIONID

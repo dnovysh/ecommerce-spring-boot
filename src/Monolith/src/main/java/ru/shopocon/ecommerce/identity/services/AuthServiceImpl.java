@@ -40,7 +40,6 @@ public class AuthServiceImpl implements AuthService {
     private final JwtTokenProvider tokenProvider;
 
     public AuthServiceImpl(UserJpaRepository userRepository,
-                           UserDetailsJwtService userDetailsJwtService,
                            UserMapper userMapper,
                            AuthenticationManager authenticationManager,
                            JwtTokenProvider tokenProvider) {
@@ -112,7 +111,7 @@ public class AuthServiceImpl implements AuthService {
                                                    HttpServletResponse response,
                                                    Authentication authentication,
                                                    Principal principal) {
-        if (authentication.isAuthenticated() && principal != null) {
+        if (authentication != null && authentication.isAuthenticated() && principal != null) {
             final User user = obtainUserFromPrincipal(principal);
             if (user == null) {
                 log.error("Signed in with the wrong principal");
