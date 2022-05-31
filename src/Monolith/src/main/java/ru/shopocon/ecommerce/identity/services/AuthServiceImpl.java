@@ -6,14 +6,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import ru.shopocon.ecommerce.common.exception.exceptions.InvalidUserDetails;
 import ru.shopocon.ecommerce.common.model.ApiError;
 import ru.shopocon.ecommerce.common.util.StringUtils;
 import ru.shopocon.ecommerce.identity.domain.security.User;
@@ -50,34 +48,17 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseEntity<SignInResponse> signIn(SignInRequest signInRequest,
-                                                 HttpServletResponse response,
-                                                 String existingEncryptedAccessToken,
-                                                 String existingEncryptedRefreshToken) {
+    public ResponseEntity<AuthResponse> signIn(SignInRequest signInRequest,
+                                               HttpServletResponse response,
+                                               String existingEncryptedAccessToken,
+                                               String existingEncryptedRefreshToken) {
         logExistingTokenWarnIfIncorrect("signIn",
             existingEncryptedAccessToken, existingEncryptedRefreshToken);
-        User user;
-        try {
-            Authentication authentication = setContextAuthentication(
-                signInRequest.getUsername(),
-                signInRequest.getPassword()
-            );
-            user = (User) authentication.getPrincipal();
-        } catch (DisabledException ex) {
-            val error = new ApiError(HttpStatus.BAD_REQUEST, "The account is disabled");
-            return ResponseEntity.badRequest().body(new SignInResponse(error));
-        } catch (LockedException ex) {
-            val error = new ApiError(HttpStatus.BAD_REQUEST, "The account is locked");
-            return ResponseEntity.badRequest().body(new SignInResponse(error));
-        } catch (AuthenticationException ex) {
-            val error = new ApiError(HttpStatus.BAD_REQUEST, "The username or password is incorrect");
-            return ResponseEntity.badRequest().body(new SignInResponse(error));
-        } catch (ClassCastException ex) {
-            log.error(ex.getLocalizedMessage());
-            val error = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR,
-                "Something went wrong, try again later or contact support");
-            return ResponseEntity.internalServerError().body(new SignInResponse(error));
-        }
+        Authentication authentication = setContextAuthentication(
+            signInRequest.getUsername(),
+            signInRequest.getPassword()
+        );
+        val user = (User) authentication.getPrincipal();
         final UserDetailsJwt userDetailsJwt = userMapper.mapToUserDetailsJwt(user);
         final UserResponseDto userResponse = userMapper.mapToUserResponseDto(user);
         final Cookie accessCookie = tokenProvider
@@ -86,7 +67,7 @@ public class AuthServiceImpl implements AuthService {
             .createRefreshCookie(userDetailsJwt, signInRequest.isRememberMe());
         response.addCookie(accessCookie);
         response.addCookie(refreshCookie);
-        return ResponseEntity.ok(new SignInResponse(userResponse));
+        return ResponseEntity.ok(new AuthResponse(userResponse));
     }
 
     @Override
@@ -114,6 +95,7 @@ public class AuthServiceImpl implements AuthService {
         if (authentication != null && authentication.isAuthenticated() && principal != null) {
             final User user = obtainUserFromPrincipal(principal);
             if (user == null) {
+
                 log.error("Signed in with the wrong principal");
                 return ResponseEntity.badRequest().body(createBadRequestRefreshResponse());
             }
@@ -150,6 +132,7 @@ public class AuthServiceImpl implements AuthService {
     public ResponseEntity<SignInResponse> createAlreadySignedInResponse(@NonNull Principal principal) {
         final User user = obtainUserFromPrincipal(principal);
         if (user == null) {
+            throw new InvalidUserDetails("Signed in with the wrong principal");
             log.error("Already signed in with the wrong principal");
             val error = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR,
                 "Something went wrong, try to sign out or contact support");
@@ -167,11 +150,9 @@ public class AuthServiceImpl implements AuthService {
     public User obtainUserFromPrincipal(@NonNull Principal principal) {
         if (principal instanceof UserDetails userDetails) {
             val optionalUser = userRepository.findByUsername(userDetails.getUsername());
-            return optionalUser.orElseGet(() -> {
-                log.error("UserDetails does not have a valid username");
-                return null;
-            });
-        } else {
+            return optionalUser.orElseThrow(() ->
+                new InvalidUserDetails("UserDetails does not have a valid username"));
+         } else {
             log.error("Principal object is not an instance of UserDetails");
             val username = principal.getName();
             val optionalUser = userRepository.findByUsername(username);
@@ -200,10 +181,5 @@ public class AuthServiceImpl implements AuthService {
                 log.error("[%s] %s token is invalid".formatted(methodName, tokenAlias));
             }
         }
-    }
-
-    private RefreshResponse createBadRequestRefreshResponse() {
-        val error = new ApiError(HttpStatus.BAD_REQUEST);
-        return new RefreshResponse(error);
     }
 }

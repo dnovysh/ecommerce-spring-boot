@@ -1,6 +1,8 @@
 package ru.shopocon.ecommerce.common.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.http.HttpStatus;
@@ -17,22 +19,34 @@ import java.util.List;
 public class ApiError {
 
     @Getter
+    private final String timestamp;
+
+    @Getter
+    private final long timestampMs;
+
+    private HttpStatus httpStatus;
+
+    @Getter
     private int status;
 
     @Getter
     private String error;
 
+    @JsonInclude(Include.NON_NULL)
     @Getter
-    private final List<ApiNestedError> errors;
+    @Setter
+    private List<ApiNestedError> errors;
 
     @Getter
     @Setter
     private String message;
 
+    @JsonInclude(Include.NON_NULL)
     @Getter
     @Setter
     private String debugMessage;
 
+    @JsonInclude(Include.NON_NULL)
     @Getter
     @Setter
     private String path;
@@ -41,25 +55,17 @@ public class ApiError {
     @Setter
     private RequiredActionType requiredAction;
 
-    @Getter
-    private final String timestamp;
-
-    @Getter
-    private final long timestampMs;
-
     private ApiError() {
         final var now = OffsetDateTime.now().truncatedTo(ChronoUnit.MILLIS);
         this.timestamp = now.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
         this.timestampMs = now.toInstant().toEpochMilli();
         this.message = "No message available";
-        this.debugMessage = "";
-        this.path = "";
         this.requiredAction = RequiredActionType.NO_ACTION_AVAILABLE;
-        this.errors = new ArrayList<>();
     }
 
     public ApiError(@NonNull HttpStatus httpStatus) {
         this();
+        this.httpStatus = httpStatus;
         this.status = httpStatus.value();
         this.error = httpStatus.getReasonPhrase();
     }
@@ -79,11 +85,14 @@ public class ApiError {
     }
 
     public void addApiNestedError(@NonNull ApiNestedError nestedError) {
+        if (errors == null) {
+            errors = new ArrayList<>();
+        }
         errors.add(nestedError);
     }
 
     @JsonIgnore
     public HttpStatus getHttpStatus() {
-        return HttpStatus.valueOf(status);
+        return httpStatus;
     }
 }

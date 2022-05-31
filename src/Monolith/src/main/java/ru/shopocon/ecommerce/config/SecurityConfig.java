@@ -71,18 +71,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         final String[] commonPermitAllPaths = {
             "/", "/error",
-            "/resources/static/**", "/resources/templates/**", "/webjars/**",
+            "/resources/static/**", "/resources/templates/**", "/webjars/**"
         };
         final String[] identityPermitAllPaths = {
-            "%s/auth/signin".formatted(basePath),
-            "%s/auth/signup".formatted(basePath),
-            "%s/auth/signout".formatted(basePath),
-            "%s/auth/refresh".formatted(basePath)
+            concatBasePath("/auth/signin"),
+            concatBasePath("/auth/signup"),
+            concatBasePath("/auth/signout"),
+            concatBasePath("/auth/refresh")
         };
         final String[] catalogPermitAllPaths = {
-            "%s/catalog-categories/**".formatted(basePath),
-            "%s/catalog-products/**".formatted(basePath),
-            "%s/catalog-reviews/**".formatted(basePath),
+            concatBasePath("/catalog-categories/**"),
+            concatBasePath("/catalog-products/**"),
+            concatBasePath("/catalog-reviews/**")
         };
 
         http.cors().and()
@@ -155,11 +155,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("%s/**".formatted(basePath), configuration);
+        source.registerCorsConfiguration(concatBasePath("/**"), configuration);
         return source;
     }
 
     private boolean isDev() {
         return "dev".equals(webSecurityProfile);
+    }
+
+    private String concatBasePath(String url) {
+        return "%s%s".formatted(basePath, url);
     }
 }

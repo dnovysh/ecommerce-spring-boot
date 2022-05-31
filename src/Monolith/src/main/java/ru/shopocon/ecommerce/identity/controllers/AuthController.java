@@ -4,9 +4,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import ru.shopocon.ecommerce.identity.model.RefreshResponse;
+import ru.shopocon.ecommerce.identity.model.AuthResponse;
 import ru.shopocon.ecommerce.identity.model.SignInRequest;
-import ru.shopocon.ecommerce.identity.model.SignInResponse;
 import ru.shopocon.ecommerce.identity.model.SignOutResponse;
 import ru.shopocon.ecommerce.identity.model.types.TokenType;
 import ru.shopocon.ecommerce.identity.services.AuthService;
@@ -30,15 +29,13 @@ public class AuthController {
     @PostMapping(value = "/signin",
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<SignInResponse> signIn(
+    public ResponseEntity<AuthResponse> signIn(
         @CookieValue(name = TokenType.Constants.ACCESS_TOKEN_NAME, required = false)
             String existingEncryptedAccessToken,
         @CookieValue(name = TokenType.Constants.REFRESH_TOKEN_NAME, required = false)
             String existingEncryptedRefreshToken,
         @Valid @RequestBody SignInRequest signInRequest,
-        HttpServletResponse response,
-        Authentication existingAuthentication,
-        Principal existingPrincipal
+        HttpServletResponse response,        Authentication existingAuthentication,        Principal existingPrincipal
     ) {
         if (existingAuthentication != null &&
             existingAuthentication.isAuthenticated()
@@ -56,13 +53,11 @@ public class AuthController {
     }
 
     @PostMapping(value = "/refresh")
-    public ResponseEntity<RefreshResponse> refresh(
+    public ResponseEntity<AuthResponse> refresh(
         @CookieValue(name = TokenType.Constants.REFRESH_TOKEN_NAME, required = false)
             String encryptedRefreshToken,
-        HttpServletRequest request,
-        HttpServletResponse response,
-        Authentication authentication,
-        Principal principal
+        HttpServletRequest request,        HttpServletResponse response,
+        Authentication authentication,        Principal principal
     ) {
         return authService.refresh(encryptedRefreshToken, request, response, authentication, principal);
     }
