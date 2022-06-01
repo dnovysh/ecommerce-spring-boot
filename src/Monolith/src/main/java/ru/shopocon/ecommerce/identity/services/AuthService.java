@@ -21,14 +21,14 @@ public interface AuthService {
                                             HttpServletResponse response);
 
     ResponseEntity<AuthResponse> refresh(String encryptedRefreshToken,
-                                            HttpServletRequest request,
-                                            HttpServletResponse response,
-                                            Authentication authentication,
-                                            Principal principal);
+                                         HttpServletRequest request,
+                                         HttpServletResponse response,
+                                         Authentication authentication,
+                                         Principal principal);
 
     Authentication setContextAuthentication(String username, String password);
 
-    ResponseEntity<AuthResponse> createAlreadySignedInResponse(@NonNull Principal principal);
+    void checkAlreadySignedIn(Authentication authentication, Principal principal);
 
     User obtainUserFromPrincipal(@NonNull Principal principal);
 }

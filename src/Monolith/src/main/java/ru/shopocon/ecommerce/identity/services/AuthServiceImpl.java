@@ -2,7 +2,6 @@ package ru.shopocon.ecommerce.identity.services;
 
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -11,8 +10,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import ru.shopocon.ecommerce.common.exception.exceptions.AlreadySignedIn;
+import ru.shopocon.ecommerce.common.exception.exceptions.InvalidPrincipal;
 import ru.shopocon.ecommerce.common.exception.exceptions.InvalidUserDetails;
-import ru.shopocon.ecommerce.common.model.ApiError;
 import ru.shopocon.ecommerce.common.util.StringUtils;
 import ru.shopocon.ecommerce.identity.domain.security.User;
 import ru.shopocon.ecommerce.identity.mappers.UserMapper;
@@ -27,6 +27,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.security.Principal;
+
+import static ru.shopocon.ecommerce.common.util.StringUtils.isBlank;
 
 @Slf4j
 @Service
@@ -87,37 +89,34 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseEntity<RefreshResponse> refresh(String encryptedRefreshToken,
-                                                   HttpServletRequest request,
-                                                   HttpServletResponse response,
-                                                   Authentication authentication,
-                                                   Principal principal) {
+    public ResponseEntity<AuthResponse> refresh(String encryptedRefreshToken,
+                                                HttpServletRequest request,
+                                                HttpServletResponse response,
+                                                Authentication authentication,
+                                                Principal principal) {
         if (authentication != null && authentication.isAuthenticated() && principal != null) {
             final User user = obtainUserFromPrincipal(principal);
-            if (user == null) {
-
-                log.error("Signed in with the wrong principal");
-                return ResponseEntity.badRequest().body(createBadRequestRefreshResponse());
-            }
             final UserResponseDto userResponse = userMapper.mapToUserResponseDto(user);
-            return ResponseEntity.ok(new RefreshResponse(userResponse));
+            return ResponseEntity.ok(new AuthResponse(userResponse));
         }
-        if (StringUtils.isNotBlank(encryptedRefreshToken)) {
-            final JwtGetBodyDto tokenBody = tokenProvider.getBodyFromEncryptedToken(encryptedRefreshToken);
-            if (tokenBody.status() == JwtTokenValidationStatus.SUCCESS) {
-                val optionalUser = userRepository.findByUsername(tokenBody.username());
-                if (optionalUser.isPresent()) {
-                    val user = optionalUser.get();
-                    final UserDetailsJwt userDetailsJwt = userMapper.mapToUserDetailsJwt(user);
-                    final UserResponseDto userResponse = userMapper.mapToUserResponseDto(user);
-                    boolean rememberMe = tokenProvider.getRememberMeByRefreshCookieMaxAge(request);
-                    final Cookie accessCookie = tokenProvider.createAccessCookie(userDetailsJwt, rememberMe);
-                    response.addCookie(accessCookie);
-                    return ResponseEntity.ok(new RefreshResponse(userResponse));
-                }
-            }
+        if (isBlank(encryptedRefreshToken)) {
+            return createBadRequestRefreshResponse();
         }
-        return ResponseEntity.badRequest().body(createBadRequestRefreshResponse());
+        final JwtGetBodyDto tokenBody = tokenProvider.getBodyFromEncryptedToken(encryptedRefreshToken);
+        if (tokenBody.status() != JwtTokenValidationStatus.SUCCESS) {
+            return createBadRequestRefreshResponse();
+        }
+        val optionalUser = userRepository.findByUsername(tokenBody.username());
+        if (optionalUser.isEmpty()) {
+            return createBadRequestRefreshResponse();
+        }
+        val user = optionalUser.get();
+        final UserDetailsJwt userDetailsJwt = userMapper.mapToUserDetailsJwt(user);
+        final UserResponseDto userResponse = userMapper.mapToUserResponseDto(user);
+        boolean rememberMe = tokenProvider.getRememberMeByRefreshCookieMaxAge(request);
+        final Cookie accessCookie = tokenProvider.createAccessCookie(userDetailsJwt, rememberMe);
+        response.addCookie(accessCookie);
+        return ResponseEntity.ok(new AuthResponse(userResponse));
     }
 
     @Override
@@ -129,21 +128,16 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseEntity<SignInResponse> createAlreadySignedInResponse(@NonNull Principal principal) {
-        final User user = obtainUserFromPrincipal(principal);
-        if (user == null) {
-            throw new InvalidUserDetails("Signed in with the wrong principal");
-            log.error("Already signed in with the wrong principal");
-            val error = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR,
-                "Something went wrong, try to sign out or contact support");
-            val signInResponse = new SignInResponse(error);
-            return ResponseEntity.internalServerError().body(signInResponse);
+    public void checkAlreadySignedIn(Authentication authentication, Principal principal) {
+        if (authentication == null || principal == null) {
+            return;
         }
-        final UserResponseDto userResponse = userMapper.mapToUserResponseDto(user);
-        val error = new ApiError(HttpStatus.BAD_REQUEST,
-            "The user is already signed in, you need to sign out first");
-        val signInResponse = new SignInResponse(userResponse, error);
-        return ResponseEntity.badRequest().body(signInResponse);
+        if (!authentication.isAuthenticated()) {
+            return;
+        }
+        final User user = obtainUserFromPrincipal(principal);
+        log.warn("User id=%s already signed in".formatted(user.getId()));
+        throw new AlreadySignedIn("The user already signed in");
     }
 
     @Override
@@ -152,14 +146,12 @@ public class AuthServiceImpl implements AuthService {
             val optionalUser = userRepository.findByUsername(userDetails.getUsername());
             return optionalUser.orElseThrow(() ->
                 new InvalidUserDetails("UserDetails does not have a valid username"));
-         } else {
+        } else {
             log.error("Principal object is not an instance of UserDetails");
             val username = principal.getName();
             val optionalUser = userRepository.findByUsername(username);
-            return optionalUser.orElseGet(() -> {
-                log.error("Principal object does not have a valid username");
-                return null;
-            });
+            return optionalUser.orElseThrow(() ->
+                new InvalidPrincipal("Principal object does not have a valid username"));
         }
     }
 
@@ -181,5 +173,9 @@ public class AuthServiceImpl implements AuthService {
                 log.error("[%s] %s token is invalid".formatted(methodName, tokenAlias));
             }
         }
+    }
+
+    private ResponseEntity<AuthResponse> createBadRequestRefreshResponse() {
+        return ResponseEntity.badRequest().body(new AuthResponse(null));
     }
 }

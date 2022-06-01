@@ -32,7 +32,7 @@ public class Role {
 
     @Singular
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "role_authority",
+    @JoinTable(name = "role_authority", schema = "ec_identity",
             joinColumns = {@JoinColumn(name = "role_id", referencedColumnName = "id")},
             inverseJoinColumns = {@JoinColumn(name = "authority_id", referencedColumnName = "id")})
     private Set<Authority> authorities;

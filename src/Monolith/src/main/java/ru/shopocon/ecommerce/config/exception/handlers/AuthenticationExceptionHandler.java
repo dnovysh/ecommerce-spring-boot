@@ -12,7 +12,10 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import ru.shopocon.ecommerce.common.exception.exceptions.AlreadySignedIn;
 import ru.shopocon.ecommerce.common.exception.exceptions.AuthClassCastException;
+import ru.shopocon.ecommerce.common.exception.exceptions.InvalidPrincipal;
+import ru.shopocon.ecommerce.common.exception.exceptions.InvalidUserDetails;
 import ru.shopocon.ecommerce.common.model.ApiError;
 import ru.shopocon.ecommerce.common.model.ApiErrorBuilder;
 
@@ -32,7 +35,10 @@ public class AuthenticationExceptionHandler {
         LockedException.class,
         UsernameNotFoundException.class,
         BadCredentialsException.class,
+        AlreadySignedIn.class,
         AuthClassCastException.class,
+        InvalidUserDetails.class,
+        InvalidPrincipal.class,
         AuthenticationException.class
     })
     ResponseEntity<ApiError> handleAuthenticationException(AuthenticationException ex) {
@@ -43,9 +49,18 @@ public class AuthenticationExceptionHandler {
         } else if (ex instanceof UsernameNotFoundException || ex instanceof BadCredentialsException) {
             log.warn("The username or password is incorrect", ex);
             return buildResponse(BAD_REQUEST, "The username or password is incorrect", ex);
+        } else if (ex instanceof AlreadySignedIn alreadySignedIn) {
+            return buildResponse(BAD_REQUEST,
+                "You are already signed in, you need to sign out first", alreadySignedIn);
         } else if (ex instanceof AuthClassCastException authClassCastException) {
             log.error("Invalid principal type", authClassCastException);
             return buildResponse(INTERNAL_SERVER_ERROR, SOMETHING_WENT_WRONG, authClassCastException);
+        } else if (ex instanceof InvalidUserDetails invalidUserDetails) {
+            log.error(invalidUserDetails.getMessage());
+            return buildResponse(INTERNAL_SERVER_ERROR, SOMETHING_WENT_WRONG, invalidUserDetails);
+        } else if (ex instanceof InvalidPrincipal invalidPrincipal) {
+            log.error(invalidPrincipal.getMessage());
+            return buildResponse(INTERNAL_SERVER_ERROR, SOMETHING_WENT_WRONG, invalidPrincipal);
         }
         log.error("Unknown authentication error", ex);
         return buildResponse(INTERNAL_SERVER_ERROR, SOMETHING_WENT_WRONG, ex);
