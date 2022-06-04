@@ -2,12 +2,12 @@ package ru.shopocon.ecommerce.common.exception.exceptions;
 
 import org.springframework.security.core.AuthenticationException;
 
-public class InvalidPrincipal extends AuthenticationException {
-    public InvalidPrincipal(String msg) {
+public class AlreadySignedInException extends AuthenticationException {
+    public AlreadySignedInException(String msg) {
         super(msg);
     }
 
-    public InvalidPrincipal(String msg, Throwable cause) {
+    public AlreadySignedInException(String msg, Throwable cause) {
         super(msg, cause);
     }
 }

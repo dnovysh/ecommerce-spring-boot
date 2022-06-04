@@ -54,16 +54,6 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         return ApiErrorBuilder.builder(BAD_REQUEST, "Validation error")
             .addApiValidationFieldErrors(ex.getBindingResult().getFieldErrors())
             .addApiValidationObjectErrors(ex.getBindingResult().getGlobalErrors())
-            // test UI case
-            .addApiValidationError("userDetails", "Some object error 1")
-            .addApiValidationError("userDetails", "username", "val1", "Some field error 1")
-            .addApiValidationError("userDetails", "Some object error 2")
-            .addApiValidationError("userDetails", "username", "val2", "Some field error 2")
-            .addApiValidationError("userDetails", "username", "val3", "Some field error 3")
-            .addApiValidationError("userDetails", "password", "val4", "Some field error 4")
-            .addApiValidationError("userDetails", "password", "val5", "Some field error 5")
-            .addApiValidationError("userDetails", "Some object error 3")
-            // end test case
             .buildResponseEntity();
     }
 }

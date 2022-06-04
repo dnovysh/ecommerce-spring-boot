@@ -13,10 +13,10 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import ru.shopocon.ecommerce.common.exception.exceptions.AlreadySignedIn;
+import ru.shopocon.ecommerce.common.exception.exceptions.AlreadySignedInException;
 import ru.shopocon.ecommerce.common.exception.exceptions.AuthClassCastException;
-import ru.shopocon.ecommerce.common.exception.exceptions.InvalidPrincipal;
-import ru.shopocon.ecommerce.common.exception.exceptions.InvalidUserDetails;
+import ru.shopocon.ecommerce.common.exception.exceptions.InvalidPrincipalException;
+import ru.shopocon.ecommerce.common.exception.exceptions.InvalidUserDetailsException;
 import ru.shopocon.ecommerce.common.model.ApiError;
 import ru.shopocon.ecommerce.common.model.ApiErrorBuilder;
 
@@ -32,12 +32,20 @@ public class AuthenticationExceptionHandler {
     private final static String SOMETHING_WENT_WRONG =
         "Something went wrong, try again later or contact support";
 
-    @ExceptionHandler(value = WeakKeyException.class)
-    ResponseEntity<ApiError> handleWeakKeyException(WeakKeyException ex) {
-        log.error("Weak secret key", ex);
-        return ApiErrorBuilder.builder(INTERNAL_SERVER_ERROR, SOMETHING_WENT_WRONG)
-            .setDebugMessage("No token created")
-            .buildTypedResponseEntity();
+    @ExceptionHandler(value = AlreadySignedInException.class)
+    ResponseEntity<ApiError> handleAlreadySignedIn(AlreadySignedInException alreadySignedInException) {
+        return buildResponse(BAD_REQUEST,
+            "You are already signed in, you need to sign out first", alreadySignedInException);
+    }
+
+    @ExceptionHandler(value = DisabledException.class)
+    ResponseEntity<ApiError> handleDisabledException(DisabledException disabledException) {
+        return buildResponse(BAD_REQUEST, "The account is disabled", disabledException);
+    }
+
+    @ExceptionHandler(value = LockedException.class)
+    ResponseEntity<ApiError> handleLockedException(LockedException lockedException) {
+        return buildResponse(BAD_REQUEST, "The account is locked", lockedException);
     }
 
     @ExceptionHandler(value = {
@@ -49,36 +57,36 @@ public class AuthenticationExceptionHandler {
         return buildResponse(BAD_REQUEST, "The login or password is incorrect", ex);
     }
 
+    @ExceptionHandler(value = AuthClassCastException.class)
+    ResponseEntity<ApiError> handleAuthClassCastException(AuthClassCastException ex) {
+        log.error("Invalid principal type", ex);
+        return buildResponse(INTERNAL_SERVER_ERROR, SOMETHING_WENT_WRONG, ex);
+    }
 
-    @ExceptionHandler(value = {
-        DisabledException.class,
-        LockedException.class,
-        AlreadySignedIn.class,
-        AuthClassCastException.class,
-        InvalidUserDetails.class,
-        InvalidPrincipal.class,
-        AuthenticationException.class
-    })
+    @ExceptionHandler(value = InvalidUserDetailsException.class)
+    ResponseEntity<ApiError> handleInvalidUserDetailsException(InvalidUserDetailsException ex) {
+        log.error(ex.getMessage(), ex);
+        return buildResponse(INTERNAL_SERVER_ERROR, SOMETHING_WENT_WRONG, ex);
+    }
+
+    @ExceptionHandler(value = InvalidPrincipalException.class)
+    ResponseEntity<ApiError> handleInvalidPrincipalException(InvalidPrincipalException ex) {
+        log.error(ex.getMessage(), ex);
+        return buildResponse(INTERNAL_SERVER_ERROR, SOMETHING_WENT_WRONG, ex);
+    }
+
+    @ExceptionHandler(value = AuthenticationException.class)
     ResponseEntity<ApiError> handleAuthenticationException(AuthenticationException ex) {
-        if (ex instanceof DisabledException disabledException) {
-            return buildResponse(BAD_REQUEST, "The account is disabled", disabledException);
-        } else if (ex instanceof LockedException lockedException) {
-            return buildResponse(BAD_REQUEST, "The account is locked", lockedException);
-        } else if (ex instanceof AlreadySignedIn alreadySignedIn) {
-            return buildResponse(BAD_REQUEST,
-                "You are already signed in, you need to sign out first", alreadySignedIn);
-        } else if (ex instanceof AuthClassCastException authClassCastException) {
-            log.error("Invalid principal type", authClassCastException);
-            return buildResponse(INTERNAL_SERVER_ERROR, SOMETHING_WENT_WRONG, authClassCastException);
-        } else if (ex instanceof InvalidUserDetails invalidUserDetails) {
-            log.error(invalidUserDetails.getMessage());
-            return buildResponse(INTERNAL_SERVER_ERROR, SOMETHING_WENT_WRONG, invalidUserDetails);
-        } else if (ex instanceof InvalidPrincipal invalidPrincipal) {
-            log.error(invalidPrincipal.getMessage());
-            return buildResponse(INTERNAL_SERVER_ERROR, SOMETHING_WENT_WRONG, invalidPrincipal);
-        }
         log.error("Unknown authentication error", ex);
         return buildResponse(INTERNAL_SERVER_ERROR, SOMETHING_WENT_WRONG, ex);
+    }
+
+    @ExceptionHandler(value = WeakKeyException.class)
+    ResponseEntity<ApiError> handleWeakKeyException(WeakKeyException ex) {
+        log.error("Weak secret key", ex);
+        return ApiErrorBuilder.builder(INTERNAL_SERVER_ERROR, SOMETHING_WENT_WRONG)
+            .setDebugMessage("No token created")
+            .buildTypedResponseEntity();
     }
 
     private ResponseEntity<ApiError> buildResponse(HttpStatus httpStatus,

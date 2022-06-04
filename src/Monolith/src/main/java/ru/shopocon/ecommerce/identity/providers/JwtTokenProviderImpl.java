@@ -12,9 +12,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.WebUtils;
 import ru.shopocon.ecommerce.common.util.EncryptionService;
 import ru.shopocon.ecommerce.common.util.StringUtils;
+import ru.shopocon.ecommerce.identity.mappers.UserDetailsJwtMapper;
 import ru.shopocon.ecommerce.identity.model.JwtGetBodyDto;
 import ru.shopocon.ecommerce.identity.model.Token;
 import ru.shopocon.ecommerce.identity.model.UserDetailsJwt;
+import ru.shopocon.ecommerce.identity.model.UserDetailsJwtPlain;
 import ru.shopocon.ecommerce.identity.model.types.JwtTokenValidationStatus;
 import ru.shopocon.ecommerce.identity.model.types.TokenType;
 
@@ -42,6 +44,7 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     private final String cookiePath = "/";
 
     private final EncryptionService encryptionService;
+    private final UserDetailsJwtMapper userDetailsJwtMapper;
 
     public JwtTokenProviderImpl(
         @Value("${shopocon.security.jwt.issuer:shopoconIdentityService}") String issuer,
@@ -52,7 +55,7 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
         @Value("${shopocon.security.jwt.access-cookie-name:AuthJwtAccess}") String accessCookieName,
         @Value("${shopocon.security.jwt.refresh-cookie-name:AuthJwtRefresh}") String refreshCookieName,
         @Value("${shopocon.security.jwt.cookie-secure:true}") boolean cookieSecure,
-        EncryptionService encryptionService) {
+        EncryptionService encryptionService, UserDetailsJwtMapper userDetailsJwtMapper) {
         this.issuer = issuer;
         this.jwtSecret = jwtSecret;
         this.accessTokenExpirationMin = accessTokenExpirationMin;
@@ -61,6 +64,7 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
         this.refreshCookieName = refreshCookieName;
         this.cookieSecure = cookieSecure;
         this.encryptionService = encryptionService;
+        this.userDetailsJwtMapper = userDetailsJwtMapper;
     }
 
     @Override
@@ -96,12 +100,15 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
         try {
             @SuppressWarnings({"unchecked", "rawtypes"})
             Claims claims = Jwts.parserBuilder()
-                .deserializeJsonWith(new JacksonDeserializer(Maps.of("userDetails", UserDetailsJwt.class).build()))
+                .deserializeJsonWith(
+                    new JacksonDeserializer(Maps.of("userDetails", UserDetailsJwtPlain.class).build()))
                 .setSigningKey(getSecretKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-            UserDetailsJwt userDetails = claims.get("userDetails", UserDetailsJwt.class);
+            val userDetailsJwtPlain = claims.get("userDetails", UserDetailsJwtPlain.class);
+            final UserDetailsJwt userDetails = userDetailsJwtMapper
+                .mapFromUserDetailsJwtPlain(userDetailsJwtPlain);
             if (userDetails == null) {
                 log.error("Empty user details");
                 return new JwtGetBodyDto(JwtTokenValidationStatus.EMPTY_USER_DETAILS);
@@ -206,13 +213,15 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     private Token createToken(UserDetailsJwt user,
                               TokenType tokenType,
                               OffsetDateTime issuedAt) {
+        final UserDetailsJwtPlain userDetailsJwtPlain = userDetailsJwtMapper
+            .mapToUserDetailsJwtPlain(user);
         final long duration = 60 * (
             (tokenType == TokenType.REFRESH)
                 ? refreshTokenExpirationMin : accessTokenExpirationMin
         );
         val expiration = issuedAt.plusSeconds(duration);
         final Claims claims = Jwts.claims().setSubject(user.getUsername());
-        claims.put("userDetails", user);
+        claims.put("userDetails", userDetailsJwtPlain);
         claims.put("issuedAt", issuedAt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
         claims.put("expiration", expiration.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
         final String token = Jwts.builder()

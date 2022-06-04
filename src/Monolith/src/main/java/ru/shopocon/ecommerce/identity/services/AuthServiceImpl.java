@@ -10,9 +10,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import ru.shopocon.ecommerce.common.exception.exceptions.AlreadySignedIn;
-import ru.shopocon.ecommerce.common.exception.exceptions.InvalidPrincipal;
-import ru.shopocon.ecommerce.common.exception.exceptions.InvalidUserDetails;
+import ru.shopocon.ecommerce.common.exception.exceptions.AlreadySignedInException;
+import ru.shopocon.ecommerce.common.exception.exceptions.InvalidPrincipalException;
+import ru.shopocon.ecommerce.common.exception.exceptions.InvalidUserDetailsException;
 import ru.shopocon.ecommerce.common.util.StringUtils;
 import ru.shopocon.ecommerce.identity.domain.security.User;
 import ru.shopocon.ecommerce.identity.mappers.UserMapper;
@@ -137,21 +137,22 @@ public class AuthServiceImpl implements AuthService {
         }
         final User user = obtainUserFromPrincipal(principal);
         log.warn("User id=%s already signed in".formatted(user.getId()));
-        throw new AlreadySignedIn("The user already signed in");
+        throw new AlreadySignedInException("The user already signed in");
     }
 
     @Override
     public User obtainUserFromPrincipal(@NonNull Principal principal) {
-        if (principal instanceof UserDetails userDetails) {
+        if (principal instanceof UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken &&
+            usernamePasswordAuthenticationToken.getPrincipal() instanceof UserDetails userDetails) {
             val optionalUser = userRepository.findByUsername(userDetails.getUsername());
             return optionalUser.orElseThrow(() ->
-                new InvalidUserDetails("UserDetails does not have a valid username"));
+                new InvalidUserDetailsException("UserDetails does not have a valid username"));
         } else {
             log.error("Principal object is not an instance of UserDetails");
             val username = principal.getName();
             val optionalUser = userRepository.findByUsername(username);
             return optionalUser.orElseThrow(() ->
-                new InvalidPrincipal("Principal object does not have a valid username"));
+                new InvalidPrincipalException("Principal object does not have a valid username"));
         }
     }
 

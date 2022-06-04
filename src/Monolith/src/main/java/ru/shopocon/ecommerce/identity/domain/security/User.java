@@ -12,6 +12,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -70,10 +71,13 @@ public class User implements UserDetails, CredentialsContainer, Serializable {
     @Transient
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return this.roles.stream()
+        final Stream<SimpleGrantedAuthority> roleStream = this.roles.stream()
+            .map(role -> new SimpleGrantedAuthority("ROLE_%s".formatted(role.getName())));
+        final Stream<SimpleGrantedAuthority> authorityStream = this.roles.stream()
             .map(Role::getAuthorities)
             .flatMap(Set::stream)
-            .map(authority -> new SimpleGrantedAuthority(authority.getPermission()))
+            .map(authority -> new SimpleGrantedAuthority(authority.getPermission()));
+        return Stream.concat(roleStream, authorityStream)
             .collect(Collectors.toSet());
     }
 
