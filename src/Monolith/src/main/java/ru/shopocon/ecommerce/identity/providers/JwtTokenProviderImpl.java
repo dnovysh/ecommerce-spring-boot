@@ -1,6 +1,10 @@
 package ru.shopocon.ecommerce.identity.providers;
 
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.jackson.io.JacksonDeserializer;
+import io.jsonwebtoken.lang.Maps;
+import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,9 +18,11 @@ import ru.shopocon.ecommerce.identity.model.UserDetailsJwt;
 import ru.shopocon.ecommerce.identity.model.types.JwtTokenValidationStatus;
 import ru.shopocon.ecommerce.identity.model.types.TokenType;
 
+import javax.crypto.SecretKey;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -39,7 +45,8 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
 
     public JwtTokenProviderImpl(
         @Value("${shopocon.security.jwt.issuer:shopoconIdentityService}") String issuer,
-        @Value("${shopocon.security.jwt.secret:defaultJwtSecretKey}") String jwtSecret,
+        @Value("${shopocon.security.jwt.secret:" +
+            "shopoconJwtSecretKeyTheKeySizeMustBeGreaterThanOrEqualToTheHashOutputSize}") String jwtSecret,
         @Value("${shopocon.security.jwt.access-token-expiration-min:10}") Long accessTokenExpirationMin,
         @Value("${shopocon.security.jwt.refresh-token-expiration-min:360}") Long refreshTokenExpirationMin,
         @Value("${shopocon.security.jwt.access-cookie-name:AuthJwtAccess}") String accessCookieName,
@@ -79,31 +86,6 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     }
 
     @Override
-    public boolean validateEncryptedToken(String encryptedToken) {
-        final String token = encryptionService.decrypt(encryptedToken);
-        return validateToken(token);
-    }
-
-    @Override
-    public boolean validateToken(String token) {
-        try {
-            Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token);
-            return true;
-        } catch (SignatureException ex) {
-            log.error("Invalid JWT Signature: {}", ex.getMessage());
-        } catch (MalformedJwtException ex) {
-            log.error("Invalid JWT token: {}", ex.getMessage());
-        } catch (ExpiredJwtException ex) {
-            log.warn("Expired JWT token: {}", ex.getMessage());
-        } catch (UnsupportedJwtException ex) {
-            log.error("Unsupported JWT exception: {}", ex.getMessage());
-        } catch (IllegalArgumentException ex) {
-            log.error("Jwt claims string is empty: {}", ex.getMessage());
-        }
-        return false;
-    }
-
-    @Override
     public JwtGetBodyDto getBodyFromEncryptedToken(String encryptedToken) {
         final String token = encryptionService.decrypt(encryptedToken);
         return getBody(token);
@@ -112,10 +94,14 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     @Override
     public JwtGetBodyDto getBody(String token) {
         try {
-            Claims claims = Jwts.parser().setSigningKey(jwtSecret)
+            @SuppressWarnings({"unchecked", "rawtypes"})
+            Claims claims = Jwts.parserBuilder()
+                .deserializeJsonWith(new JacksonDeserializer(Maps.of("userDetails", UserDetailsJwt.class).build()))
+                .setSigningKey(getSecretKey())
+                .build()
                 .parseClaimsJws(token)
                 .getBody();
-            val userDetails = claims.get("userDetails", UserDetailsJwt.class);
+            UserDetailsJwt userDetails = claims.get("userDetails", UserDetailsJwt.class);
             if (userDetails == null) {
                 log.error("Empty user details");
                 return new JwtGetBodyDto(JwtTokenValidationStatus.EMPTY_USER_DETAILS);
@@ -129,10 +115,10 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
                 OffsetDateTime.parse(claims.get("expiration", String.class),
                     DateTimeFormatter.ISO_OFFSET_DATE_TIME));
         } catch (SignatureException ex) {
-            log.error("Invalid JWT Signature: {}", ex.getMessage());
+            log.error("Invalid JWT Signature", ex);
             return new JwtGetBodyDto(JwtTokenValidationStatus.SIGNATURE_EXCEPTION);
         } catch (MalformedJwtException ex) {
-            log.error("Invalid JWT token: {}", ex.getMessage());
+            log.error("Invalid JWT token", ex);
             return new JwtGetBodyDto(JwtTokenValidationStatus.MALFORMED_JWT_EXCEPTION);
         } catch (ExpiredJwtException ex) {
             log.warn("Expired JWT token: {}", ex.getMessage());
@@ -147,7 +133,7 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
             log.error("Jwt class cast exception: {}", ex.getMessage());
             return new JwtGetBodyDto(JwtTokenValidationStatus.CLASS_CAST_EXCEPTION);
         } catch (RuntimeException ex) {
-            log.error("Unknown exception: {}", ex.getMessage());
+            log.error("Unknown exception", ex);
             return new JwtGetBodyDto(JwtTokenValidationStatus.UNKNOWN_RUNTIME_EXCEPTION);
         }
     }
@@ -235,7 +221,7 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
             .setIssuer(issuer)
             .setIssuedAt(Date.from(issuedAt.toInstant()))
             .setExpiration(Date.from(expiration.toInstant()))
-            .signWith(SignatureAlgorithm.HS512, jwtSecret)
+            .signWith(getSecretKey(), SignatureAlgorithm.HS512)
             .compact();
         return new Token(tokenType, token, duration, expiration);
     }
@@ -267,5 +253,9 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
 
     private Cookie createRefreshCleanCookie() {
         return createCleanCookie(refreshCookieName);
+    }
+
+    private SecretKey getSecretKey() {
+        return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 }

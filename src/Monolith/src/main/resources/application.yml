@@ -7,7 +7,7 @@ shopocon:
       refresh-cookie-name: AUTHJWTR
       cookie-secure: false
       issuer: shopoconIdentityService
-      secret: shopoconJwtSecretKey
+      secret: shopoconJwtSecretKeyTheKeySizeMustBeGreaterThanOrEqualToTheHashOutputSize
       access-token-expiration-min: 15
       refresh-token-expiration-min: 1440
   catalog:
@@ -40,7 +40,7 @@ spring:
   session:
     store-type: hazelcast
     hazelcast:
-      map-name: 'shopocon:session:sessions'
+      map-name: "shopocon:session:sessions"
 
   jackson:
     serialization:

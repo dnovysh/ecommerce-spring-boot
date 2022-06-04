@@ -3,6 +3,7 @@ package ru.shopocon.ecommerce.identity.domain.security;
 import lombok.*;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Set;
 
 /**
@@ -17,7 +18,7 @@ import java.util.Set;
 @Builder
 @Entity
 @Table(name = "role", schema = "ec_identity")
-public class Role {
+public class Role implements Serializable {
 
     @Id
     @Column(name = "id")
@@ -28,12 +29,12 @@ public class Role {
     private String name;
 
     @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
-    private Set<User> users;
+    private transient Set<User> users;
 
     @Singular
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "role_authority", schema = "ec_identity",
-            joinColumns = {@JoinColumn(name = "role_id", referencedColumnName = "id")},
-            inverseJoinColumns = {@JoinColumn(name = "authority_id", referencedColumnName = "id")})
+        joinColumns = {@JoinColumn(name = "role_id", referencedColumnName = "id")},
+        inverseJoinColumns = {@JoinColumn(name = "authority_id", referencedColumnName = "id")})
     private Set<Authority> authorities;
 }

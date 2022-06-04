@@ -3,6 +3,7 @@ package ru.shopocon.ecommerce.identity.domain.security;
 import lombok.*;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Set;
 
 /**
@@ -17,7 +18,7 @@ import java.util.Set;
 @Builder
 @Entity
 @Table(name = "authority", schema = "ec_identity")
-public class Authority {
+public class Authority implements Serializable {
 
     @Id
     @Column(name = "id")
@@ -28,5 +29,5 @@ public class Authority {
     private String permission;
 
     @ManyToMany(mappedBy = "authorities", fetch = FetchType.LAZY)
-    private Set<Role> roles;
+    private transient Set<Role> roles;
 }

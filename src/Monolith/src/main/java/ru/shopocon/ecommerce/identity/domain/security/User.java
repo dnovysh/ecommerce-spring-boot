@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import ru.shopocon.ecommerce.identity.domain.Dealer;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 @Builder(toBuilder = true)
 @Entity
 @Table(name = "user", schema = "ec_identity")
-public class User implements UserDetails, CredentialsContainer {
+public class User implements UserDetails, CredentialsContainer, Serializable {
 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id

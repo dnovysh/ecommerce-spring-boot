@@ -1,5 +1,4 @@
-package ru.shopocon.ecommerce;
-
+package ru.shopocon.ecommerce.passwordencoding;
 
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
@@ -28,7 +27,13 @@ public class PasswordEncodingTest {
     Stream<DynamicTest> testDemoUserCredentials() {
         final var demoUserCredentials = List.of(
             new userNamePasswordTuple("shopocon1@shopocon.com", "shopocon"),
-            new userNamePasswordTuple("shopocon2shopocon.com", "eShopOnContainer")
+            new userNamePasswordTuple("shopocon2shopocon.com", "eShopOnContainer"),
+            new userNamePasswordTuple("stpete@stpete.com", "password"),
+            new userNamePasswordTuple("dunedin@dunedin.com", "password"),
+            new userNamePasswordTuple("keywest@keywest.com", "password"),
+            new userNamePasswordTuple("scott@oracle.com", "tiger"),
+            new userNamePasswordTuple("user@example.com", "password"),
+            new userNamePasswordTuple("buyer@example.com", "shopper")
         );
         return demoUserCredentials.stream().map(userNamePassword -> DynamicTest.dynamicTest(
             "User { %s } has password { %s }".formatted(userNamePassword.username, userNamePassword.password),
@@ -40,13 +45,7 @@ public class PasswordEncodingTest {
     void testBcrypt() {
         int strength = 12;
         PasswordEncoder bcrypt = new BCryptPasswordEncoder(strength);
-
         System.out.println(bcrypt.encode("shopocon"));
-        System.out.println(bcrypt.encode("eShopOnContainer"));
-        System.out.println(bcrypt.encode("password"));
-        System.out.println(bcrypt.encode("tiger"));
-        System.out.println(bcrypt.encode("shopper"));
-
         assertTrue(bcrypt.matches("shopocon",
             "$2a$12$GKckgltLA4Vcp8sn1NF5Quhv8wPSJWQ4X1Ls4dLBQSQvA8M8eAMb6"));
     }
