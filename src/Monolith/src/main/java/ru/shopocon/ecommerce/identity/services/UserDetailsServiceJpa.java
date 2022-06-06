@@ -11,7 +11,7 @@ import ru.shopocon.ecommerce.identity.repositories.UserJpaRepository;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class UserDetailsServiceJpaImpl implements UserDetailsService {
+public class UserDetailsServiceJpa implements UserDetailsService {
 
     private final UserJpaRepository userRepository;
 

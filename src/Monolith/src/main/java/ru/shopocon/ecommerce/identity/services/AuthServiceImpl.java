@@ -100,15 +100,15 @@ public class AuthServiceImpl implements AuthService {
             return ResponseEntity.ok(new AuthResponse(userResponse));
         }
         if (isBlank(encryptedRefreshToken)) {
-            return createBadRequestRefreshResponse();
+            return createNoUserRefreshResponse();
         }
         final JwtGetBodyDto tokenBody = tokenProvider.getBodyFromEncryptedToken(encryptedRefreshToken);
         if (tokenBody.status() != JwtTokenValidationStatus.SUCCESS) {
-            return createBadRequestRefreshResponse();
+            return createNoUserRefreshResponse();
         }
         val optionalUser = userRepository.findByUsername(tokenBody.username());
         if (optionalUser.isEmpty()) {
-            return createBadRequestRefreshResponse();
+            return createNoUserRefreshResponse();
         }
         val user = optionalUser.get();
         final UserDetailsJwt userDetailsJwt = userMapper.mapToUserDetailsJwt(user);
@@ -176,7 +176,7 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-    private ResponseEntity<AuthResponse> createBadRequestRefreshResponse() {
-        return ResponseEntity.badRequest().body(new AuthResponse(null));
+    private ResponseEntity<AuthResponse> createNoUserRefreshResponse() {
+        return ResponseEntity.ok(new AuthResponse(null));
     }
 }
