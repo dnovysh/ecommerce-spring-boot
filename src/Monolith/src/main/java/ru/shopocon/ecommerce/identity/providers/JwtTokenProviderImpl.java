@@ -52,8 +52,10 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
             "shopoconJwtSecretKeyTheKeySizeMustBeGreaterThanOrEqualToTheHashOutputSize}") String jwtSecret,
         @Value("${shopocon.security.jwt.access-token-expiration-min:10}") Long accessTokenExpirationMin,
         @Value("${shopocon.security.jwt.refresh-token-expiration-min:360}") Long refreshTokenExpirationMin,
-        @Value("${shopocon.security.jwt.access-cookie-name:AuthJwtAccess}") String accessCookieName,
-        @Value("${shopocon.security.jwt.refresh-cookie-name:AuthJwtRefresh}") String refreshCookieName,
+        @Value("${shopocon.security.jwt.access-cookie-name:" + DEFAULT_ACCESS_COOKIE_NAME + "}")
+            String accessCookieName,
+        @Value("${shopocon.security.jwt.refresh-cookie-name:" + DEFAULT_REFRESH_COOKIE_NAME + "}")
+            String refreshCookieName,
         @Value("${shopocon.security.jwt.cookie-secure:true}") boolean cookieSecure,
         EncryptionService encryptionService, UserDetailsJwtMapper userDetailsJwtMapper) {
         this.issuer = issuer;

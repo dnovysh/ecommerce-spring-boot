@@ -4,10 +4,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeType;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -17,8 +19,7 @@ import ru.shopocon.ecommerce.common.model.ApiErrorBuilder;
 
 import java.util.stream.Collectors;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.UNSUPPORTED_MEDIA_TYPE;
+import static org.springframework.http.HttpStatus.*;
 
 @Slf4j
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -55,5 +56,19 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
             .addApiValidationFieldErrors(ex.getBindingResult().getFieldErrors())
             .addApiValidationObjectErrors(ex.getBindingResult().getGlobalErrors())
             .buildResponseEntity();
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(
+        HttpRequestMethodNotSupportedException ex,
+        HttpHeaders headers, HttpStatus status, WebRequest request
+    ) {
+        String supportedMethods = ex.getSupportedHttpMethods() != null
+            ? ex.getSupportedHttpMethods().stream().map(HttpMethod::toString).collect(Collectors.joining(", "))
+            : "no supported methods";
+        String message = "Http method %s is not supported. Supported methods are %s"
+            .formatted(ex.getMethod(), supportedMethods);
+        log.warn("Http method %s is not supported".formatted(ex.getMethod()), ex);
+        return ApiErrorBuilder.builder(METHOD_NOT_ALLOWED, message, ex).buildResponseEntity();
     }
 }

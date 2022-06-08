@@ -14,8 +14,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.security.Principal;
 
-import static ru.shopocon.ecommerce.identity.model.types.TokenType.Constants.ACCESS_TOKEN_NAME;
-import static ru.shopocon.ecommerce.identity.model.types.TokenType.Constants.REFRESH_TOKEN_NAME;
+import static ru.shopocon.ecommerce.identity.providers.JwtTokenProvider.DEFAULT_ACCESS_COOKIE_NAME;
+import static ru.shopocon.ecommerce.identity.providers.JwtTokenProvider.DEFAULT_REFRESH_COOKIE_NAME;
+
 
 @RestController
 //@BasePathAwareController
@@ -31,8 +32,14 @@ public class AuthController {
     @PostMapping(value = "/signin",
         consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AuthResponse> signIn(
-        @CookieValue(name = ACCESS_TOKEN_NAME, required = false) String existingEncryptedAccessToken,
-        @CookieValue(name = REFRESH_TOKEN_NAME, required = false) String existingEncryptedRefreshToken,
+        @CookieValue(
+            name = "${shopocon.security.jwt.access-cookie-name:" + DEFAULT_ACCESS_COOKIE_NAME + "}",
+            required = false)
+            String existingEncryptedAccessToken,
+        @CookieValue(
+            name = "${shopocon.security.jwt.refresh-cookie-name:" + DEFAULT_REFRESH_COOKIE_NAME + "}",
+            required = false)
+            String existingEncryptedRefreshToken,
         @Valid @RequestBody SignInRequest signInRequest,
         HttpServletResponse response, Authentication existingAuthentication, Principal existingPrincipal
     ) {
@@ -49,7 +56,9 @@ public class AuthController {
 
     @PostMapping(value = "/refresh")
     public ResponseEntity<AuthResponse> refresh(
-        @CookieValue(name = REFRESH_TOKEN_NAME, required = false)
+        @CookieValue(
+            name = "${shopocon.security.jwt.refresh-cookie-name:" + DEFAULT_REFRESH_COOKIE_NAME + "}",
+            required = false)
             String encryptedRefreshToken,
         HttpServletRequest request, HttpServletResponse response,
         Authentication authentication, Principal principal

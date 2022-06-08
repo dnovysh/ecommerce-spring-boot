@@ -10,6 +10,9 @@ import javax.servlet.http.HttpServletResponse;
 
 public interface JwtTokenProvider {
 
+    static final String DEFAULT_ACCESS_COOKIE_NAME = "AuthJwtAccess";
+    static final String DEFAULT_REFRESH_COOKIE_NAME = "AuthJwtRefresh";
+
     String getBearerToken(HttpServletRequest request);
 
     String extractAccessTokenFromCookie(HttpServletRequest request);

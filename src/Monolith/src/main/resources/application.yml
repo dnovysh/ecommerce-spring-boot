@@ -8,7 +8,7 @@ shopocon:
       cookie-secure: false
       issuer: shopoconIdentityService
       secret: shopoconJwtSecretKeyTheKeySizeMustBeGreaterThanOrEqualToTheHashOutputSize
-      access-token-expiration-min: 15
+      access-token-expiration-min: 30
       refresh-token-expiration-min: 1440
   catalog:
     low-stock-boundary: 5
