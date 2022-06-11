@@ -35,6 +35,8 @@ public interface JwtTokenProvider {
 
     void addAccessCleanCookie(HttpServletResponse response);
 
+    void addRefreshCleanCookie(HttpServletResponse response);
+
     void addRefreshCleanCookieIfRememberMeFalse(HttpServletRequest request,
                                                 HttpServletResponse response);
 

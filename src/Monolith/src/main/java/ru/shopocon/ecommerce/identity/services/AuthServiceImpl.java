@@ -29,6 +29,7 @@ import javax.servlet.http.HttpSession;
 import java.security.Principal;
 
 import static ru.shopocon.ecommerce.common.util.StringUtils.isBlank;
+import static ru.shopocon.ecommerce.identity.model.types.JwtTokenValidationStatus.SUCCESS;
 
 @Slf4j
 @Service
@@ -53,9 +54,11 @@ public class AuthServiceImpl implements AuthService {
     public ResponseEntity<AuthResponse> signIn(SignInRequest signInRequest,
                                                HttpServletResponse response,
                                                String existingEncryptedAccessToken,
-                                               String existingEncryptedRefreshToken) {
-        logExistingTokenWarnIfIncorrect("signIn",
-            existingEncryptedAccessToken, existingEncryptedRefreshToken);
+                                               String existingEncryptedRefreshToken,
+                                               Authentication existingAuthentication,
+                                               Principal existingPrincipal) {
+        checkAlreadyAuthenticated(existingEncryptedAccessToken, existingEncryptedRefreshToken,
+            existingAuthentication, existingPrincipal);
         Authentication authentication = setContextAuthentication(
             signInRequest.getUsername(),
             signInRequest.getPassword()
@@ -80,11 +83,11 @@ public class AuthServiceImpl implements AuthService {
             try {
                 request.logout();
             } catch (ServletException ex) {
-                log.error("Session logout error {}", ex.getMessage());
+                log.error("Session logout error", ex);
             }
         }
         tokenProvider.addAccessCleanCookie(response);
-        tokenProvider.addRefreshCleanCookieIfRememberMeFalse(request, response);
+        tokenProvider.addRefreshCleanCookie(response);
         return ResponseEntity.ok(new SignOutResponse("You've been signed out"));
     }
 
@@ -103,7 +106,7 @@ public class AuthServiceImpl implements AuthService {
             return createNoUserRefreshResponse();
         }
         final JwtGetBodyDto tokenBody = tokenProvider.getBodyFromEncryptedToken(encryptedRefreshToken);
-        if (tokenBody.status() != JwtTokenValidationStatus.SUCCESS) {
+        if (tokenBody.status() != SUCCESS) {
             return createNoUserRefreshResponse();
         }
         val optionalUser = userRepository.findByUsername(tokenBody.username());
@@ -128,19 +131,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void checkAlreadySignedIn(Authentication authentication, Principal principal) {
-        if (authentication == null || principal == null) {
-            return;
-        }
-        if (!authentication.isAuthenticated()) {
-            return;
-        }
-        final User user = obtainUserFromPrincipal(principal);
-        log.warn("User id=%s already signed in".formatted(user.getId()));
-        throw new AlreadySignedInException("The user already signed in");
-    }
-
-    @Override
     public User obtainUserFromPrincipal(@NonNull Principal principal) {
         if (principal instanceof UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken &&
             usernamePasswordAuthenticationToken.getPrincipal() instanceof UserDetails userDetails) {
@@ -156,27 +146,47 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-    private void logExistingTokenWarnIfIncorrect(String methodName,
-                                                 String encryptedAccessToken,
-                                                 String encryptedRefreshToken) {
-        logTokenWarnIfIncorrect(methodName, encryptedAccessToken, "Access");
-        logTokenWarnIfIncorrect(methodName, encryptedRefreshToken, "Refresh");
+    private ResponseEntity<AuthResponse> createNoUserRefreshResponse() {
+        return ResponseEntity.ok(new AuthResponse(null));
     }
 
-    private void logTokenWarnIfIncorrect(String methodName, String encryptedToken, String tokenAlias) {
-        if (StringUtils.isNotBlank(encryptedToken)) {
-            final JwtGetBodyDto tokenBody = tokenProvider.getBodyFromEncryptedToken(encryptedToken);
-            final JwtTokenValidationStatus status = tokenBody.status();
-            if (status == JwtTokenValidationStatus.SUCCESS) {
-                log.error("[%s] %s token is valid but user (id=%s) is not logged in"
-                    .formatted(methodName, tokenAlias, tokenBody.userDetailsJwt().getId()));
-            } else if (status != JwtTokenValidationStatus.EXPIRED_JWT_EXCEPTION) {
-                log.error("[%s] %s token is invalid".formatted(methodName, tokenAlias));
+    private void checkAlreadyAuthenticated(String existingEncryptedAccessToken,
+                                           String existingEncryptedRefreshToken,
+                                           Authentication existingAuthentication,
+                                           Principal existingPrincipal) {
+        checkAlreadyAuthenticatedByAccessToken(existingEncryptedAccessToken);
+        checkAlreadyAuthenticatedByRefreshToken(existingEncryptedRefreshToken);
+        if (existingAuthentication != null &&
+            existingAuthentication.isAuthenticated() &&
+            existingPrincipal != null
+        ) {
+            final User user = obtainUserFromPrincipal(existingPrincipal);
+            log.warn("User id=%s already signed in, no valid tokens found".formatted(user.getId()));
+            throw new AlreadySignedInException("The user already signed in, no valid tokens found");
+        }
+    }
+
+    private void checkAlreadyAuthenticatedByAccessToken(String existingEncryptedAccessToken) {
+        final JwtGetBodyDto accessTokenBody = StringUtils.isNotBlank(existingEncryptedAccessToken)
+            ? tokenProvider.getBodyFromEncryptedToken(existingEncryptedAccessToken) : null;
+        if (accessTokenBody != null) {
+            if (accessTokenBody.status() == SUCCESS) {
+                log.warn("User id=%s already signed in by access token"
+                    .formatted(accessTokenBody.userDetailsJwt().getId()));
+                throw new AlreadySignedInException("The user already signed in by access token");
+            } else if (accessTokenBody.status() != JwtTokenValidationStatus.EXPIRED_JWT_EXCEPTION) {
+                log.error("Access token is invalid");
             }
         }
     }
 
-    private ResponseEntity<AuthResponse> createNoUserRefreshResponse() {
-        return ResponseEntity.ok(new AuthResponse(null));
+    private void checkAlreadyAuthenticatedByRefreshToken(String existingEncryptedRefreshToken) {
+        final JwtGetBodyDto refreshTokenBody = StringUtils.isNotBlank(existingEncryptedRefreshToken)
+            ? tokenProvider.getBodyFromEncryptedToken(existingEncryptedRefreshToken) : null;
+        if (refreshTokenBody != null && refreshTokenBody.status() == SUCCESS) {
+            log.warn("User id=%s already signed in by refresh token"
+                .formatted(refreshTokenBody.userDetailsJwt().getId()));
+            throw new AlreadySignedInException("The user already signed in by refresh token");
+        }
     }
 }

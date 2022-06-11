@@ -43,9 +43,9 @@ public class AuthController {
         @Valid @RequestBody SignInRequest signInRequest,
         HttpServletResponse response, Authentication existingAuthentication, Principal existingPrincipal
     ) {
-        authService.checkAlreadySignedIn(existingAuthentication, existingPrincipal);
         return authService.signIn(signInRequest, response,
-            existingEncryptedAccessToken, existingEncryptedRefreshToken);
+            existingEncryptedAccessToken, existingEncryptedRefreshToken,
+            existingAuthentication, existingPrincipal);
     }
 
     @PostMapping(value = "/signout")
@@ -54,7 +54,7 @@ public class AuthController {
         return authService.signOut(request, response);
     }
 
-    @PostMapping(value = "/refresh")
+    @GetMapping(value = "/refresh")
     public ResponseEntity<AuthResponse> refresh(
         @CookieValue(
             name = "${shopocon.security.jwt.refresh-cookie-name:" + DEFAULT_REFRESH_COOKIE_NAME + "}",

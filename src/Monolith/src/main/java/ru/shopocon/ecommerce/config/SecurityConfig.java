@@ -92,7 +92,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint()).and()
             .authorizeRequests(authorize -> authorize
                 .antMatchers(commonPermitAllPaths).permitAll()
-                .antMatchers(HttpMethod.POST, identityPermitAllPaths).permitAll()
+                .antMatchers(identityPermitAllPaths).permitAll()
                 .antMatchers(catalogPermitAllPaths).permitAll()
             )
             .authorizeRequests().anyRequest().authenticated().and()

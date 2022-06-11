@@ -191,6 +191,11 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     }
 
     @Override
+    public void addRefreshCleanCookie(HttpServletResponse response) {
+        response.addCookie(createRefreshCleanCookie());
+    }
+
+    @Override
     public void addRefreshCleanCookieIfRememberMeFalse(HttpServletRequest request,
                                                        HttpServletResponse response) {
         Arrays.stream(request.getCookies())

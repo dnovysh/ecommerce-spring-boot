@@ -22,6 +22,7 @@ import ru.shopocon.ecommerce.common.model.ApiErrorBuilder;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static ru.shopocon.ecommerce.common.model.types.RequiredActionType.REFRESH_USER;
 
 
 @Slf4j
@@ -34,8 +35,11 @@ public class AuthenticationExceptionHandler {
 
     @ExceptionHandler(value = AlreadySignedInException.class)
     ResponseEntity<ApiError> handleAlreadySignedIn(AlreadySignedInException alreadySignedInException) {
-        return buildResponse(BAD_REQUEST,
-            "You are already signed in, you need to sign out first", alreadySignedInException);
+        return ApiErrorBuilder.builder(BAD_REQUEST,
+                "You are already signed in, you need to sign out first")
+            .setDebugMessage(alreadySignedInException.getMessage())
+            .setRequiredAction(REFRESH_USER)
+            .buildTypedResponseEntity();
     }
 
     @ExceptionHandler(value = DisabledException.class)
