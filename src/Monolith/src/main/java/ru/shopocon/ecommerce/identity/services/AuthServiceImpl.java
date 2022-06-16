@@ -9,6 +9,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import ru.shopocon.ecommerce.common.exception.exceptions.AlreadySignedInException;
 import ru.shopocon.ecommerce.common.exception.exceptions.InvalidPrincipalException;
@@ -28,6 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.security.Principal;
 
+import static org.springframework.http.HttpStatus.CREATED;
 import static ru.shopocon.ecommerce.common.util.StringUtils.isBlank;
 import static ru.shopocon.ecommerce.identity.model.types.JwtTokenValidationStatus.SUCCESS;
 
@@ -39,15 +41,18 @@ public class AuthServiceImpl implements AuthService {
     private final UserMapper userMapper;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
+    private final PasswordEncoder passwordEncoder;
 
     public AuthServiceImpl(UserJpaRepository userRepository,
                            UserMapper userMapper,
                            AuthenticationManager authenticationManager,
-                           JwtTokenProvider tokenProvider) {
+                           JwtTokenProvider tokenProvider,
+                           PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -73,6 +78,36 @@ public class AuthServiceImpl implements AuthService {
         response.addCookie(accessCookie);
         response.addCookie(refreshCookie);
         return ResponseEntity.ok(new AuthResponse(userResponse));
+    }
+
+    @Override
+    public ResponseEntity<AuthResponse> signUp(SignUpRequest signUpRequest,
+                                               HttpServletResponse response,
+                                               String existingEncryptedAccessToken,
+                                               String existingEncryptedRefreshToken,
+                                               Authentication existingAuthentication,
+                                               Principal existingPrincipal) {
+        checkAlreadyAuthenticated(existingEncryptedAccessToken, existingEncryptedRefreshToken,
+            existingAuthentication, existingPrincipal);
+        val password = passwordEncoder.encode(signUpRequest.getPassword());
+        val newUser = User.builder()
+            .userAlias(signUpRequest.getUserAlias())
+            .username(signUpRequest.getUsername())
+            .password(password)
+            .build();
+        userRepository.saveAndFlush(newUser);
+        Authentication authentication = setContextAuthentication(
+            signUpRequest.getUsername(),
+            signUpRequest.getPassword()
+        );
+        val user = (User) authentication.getPrincipal();
+        final UserDetailsJwt userDetailsJwt = userMapper.mapToUserDetailsJwt(user);
+        final UserResponseDto userResponse = userMapper.mapToUserResponseDto(user);
+        final Cookie accessCookie = tokenProvider.createAccessCookie(userDetailsJwt, false);
+        final Cookie refreshCookie = tokenProvider.createRefreshCookie(userDetailsJwt, false);
+        response.addCookie(accessCookie);
+        response.addCookie(refreshCookie);
+        return ResponseEntity.status(CREATED).body(new AuthResponse(userResponse));
     }
 
     @Override

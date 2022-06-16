@@ -11,7 +11,10 @@ import javax.validation.constraints.Pattern;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SignInRequest {
+public class SignUpRequest {
+
+    @NotBlank
+    private String userAlias;
 
     @NotBlank
     @Email(message = "Valid e-mail address required")
@@ -20,6 +23,4 @@ public class SignInRequest {
     @NotBlank
     @Pattern(regexp = "^\\S*$", message = "Spaces are not allowed in the password")
     private String password;
-
-    private boolean rememberMe;
 }
