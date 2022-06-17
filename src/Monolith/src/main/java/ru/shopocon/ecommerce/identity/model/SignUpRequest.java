@@ -3,6 +3,7 @@ package ru.shopocon.ecommerce.identity.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
@@ -14,9 +15,11 @@ import javax.validation.constraints.Pattern;
 public class SignUpRequest {
 
     @NotBlank
+    @Length(min = 1, max = 100)
     private String userAlias;
 
     @NotBlank
+    @Length(min = 3, max = 60)
     @Email(message = "Valid e-mail address required")
     private String username;
 
