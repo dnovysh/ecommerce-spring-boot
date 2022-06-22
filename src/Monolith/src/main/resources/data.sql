@@ -39,27 +39,27 @@ values (1, 'shopocon1@shopocon.com', '$2a$12$jVMuAb2oXwyugDwTYZiBNOv829gja/.PtUd
 -- -----------------------------------------------------
 -- Authority data
 -- -----------------------------------------------------
-insert into ec_identity.authority(id, permission)
+insert into ec_identity.authority(id, permission_group, permission)
 values -- user
-       (1, 'user.create'),
-       (2, 'user.read'),
-       (3, 'user.update'),
-       (4, 'user.delete'),
+       (1, 'user', 'user.create'),
+       (2, 'user', 'user.read'),
+       (3, 'user', 'user.update'),
+       (4, 'user', 'user.delete'),
        -- dealer
-       (5, 'dealer.create'),
-       (6, 'dealer.read'),
-       (7, 'dealer.update'),
-       (8, 'dealer.delete'),
+       (5, 'dealer', 'dealer.create'),
+       (6, 'dealer', 'dealer.read'),
+       (7, 'dealer', 'dealer.update'),
+       (8, 'dealer', 'dealer.delete'),
        -- product
-       (10, 'product.create'),
-       (11, 'product.read'),
-       (12, 'product.update'),
-       (13, 'product.delete'),
+       (10, 'product', 'product.create'),
+       (11, 'product', 'product.read'),
+       (12, 'product', 'product.update'),
+       (13, 'product', 'product.delete'),
        -- dealer product
-       (14, 'dealer.product.create'),
-       (15, 'dealer.product.read'),
-       (16, 'dealer.product.update'),
-       (17, 'dealer.product.delete');
+       (14, 'dealer.product', 'dealer.product.create'),
+       (15, 'dealer.product', 'dealer.product.read'),
+       (16, 'dealer.product', 'dealer.product.update'),
+       (17, 'dealer.product', 'dealer.product.delete');
 
 -- -----------------------------------------------------
 -- Role data

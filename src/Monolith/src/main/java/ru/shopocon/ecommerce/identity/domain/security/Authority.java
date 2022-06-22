@@ -24,6 +24,9 @@ public class Authority implements Serializable {
     @Column(name = "id")
     private Long id;
 
+    @Column(name = "permission_group", nullable = false)
+    private String group;
+
     @EqualsAndHashCode.Include
     @Column(name = "permission", nullable = false)
     private String permission;

@@ -47,6 +47,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             }
+
+            //ToDo handle expired access token
+
+
         } catch (Exception ex) {
             log.error("Cannot set user authentication", ex);
         }

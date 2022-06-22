@@ -1,4 +1,6 @@
 package ru.shopocon.ecommerce.identity.model;
 
-public record DealerDto(Long id, String name) {
+import java.io.Serializable;
+
+public record DealerDto(Long id, String name) implements Serializable {
 }

@@ -51,8 +51,9 @@ create table if not exists ec_identity.role
 -- authority
 create table if not exists ec_identity.authority
 (
-    id         bigint       not null,
-    permission varchar(100) not null,
+    id               bigint       not null,
+    permission_group varchar(100) not null,
+    permission       varchar(100) not null,
     primary key (id),
     constraint un_authority_permission unique (permission)
 );

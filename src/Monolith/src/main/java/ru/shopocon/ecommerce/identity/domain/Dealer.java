@@ -4,6 +4,7 @@ import lombok.*;
 import ru.shopocon.ecommerce.identity.domain.security.User;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Set;
 
 @AllArgsConstructor
@@ -13,7 +14,7 @@ import java.util.Set;
 @Builder
 @Entity
 @Table(name = "dealer", schema = "ec_identity")
-public class Dealer {
+public class Dealer implements Serializable {
 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
@@ -24,5 +25,5 @@ public class Dealer {
     private String name;
 
     @OneToMany(mappedBy = "dealer", fetch = FetchType.LAZY)
-    private Set<User> users;
+    private transient Set<User> users;
 }
