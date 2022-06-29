@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -17,6 +18,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
@@ -32,6 +34,7 @@ import java.util.List;
 @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
 @Configuration
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Value("${spring.data.rest.base-path}")
@@ -51,6 +54,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private JwtRequestFilter jwtRequestFilter;
+
+    @Autowired
+    private AccessDeniedHandler accessDeniedHandler;
 
     @Override
     public void configure(WebSecurity web) {
@@ -77,8 +83,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             concatBasePath("/auth/signin"),
             concatBasePath("/auth/signup"),
             concatBasePath("/auth/signout"),
-            concatBasePath("/auth/refresh"),
-            concatBasePath("/identity-authorities/**")
+            concatBasePath("/auth/refresh")
         };
         final String[] catalogPermitAllPaths = {
             concatBasePath("/catalog-categories/**"),
@@ -89,11 +94,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.cors().and()
             .csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
 
-        http.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint()).and()
-            .authorizeRequests(authorize -> authorize
+        http.exceptionHandling()
+            .authenticationEntryPoint(authenticationEntryPoint())
+            .accessDeniedHandler(accessDeniedHandler);
+
+        http.authorizeRequests(authorize -> authorize
                 .antMatchers(commonPermitAllPaths).permitAll()
                 .antMatchers(identityPermitAllPaths).permitAll()
                 .antMatchers(catalogPermitAllPaths).permitAll()
+                .antMatchers(concatBasePath("/identity-roles/**")).hasRole("ADMIN")
+                .antMatchers(concatBasePath("/identity-authorities/**")).hasRole("ADMIN")
             )
             .authorizeRequests().anyRequest().authenticated().and()
             .formLogin().disable()

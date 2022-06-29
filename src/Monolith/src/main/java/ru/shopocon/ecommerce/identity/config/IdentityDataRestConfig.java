@@ -9,6 +9,7 @@ import ru.shopocon.ecommerce.identity.domain.Dealer;
 import ru.shopocon.ecommerce.identity.domain.security.Authority;
 import ru.shopocon.ecommerce.identity.domain.security.Role;
 import ru.shopocon.ecommerce.identity.domain.security.User;
+import ru.shopocon.ecommerce.identity.projections.InlineAuthorities;
 import ru.shopocon.ecommerce.util.RepositoryRestConfigurerHelper;
 
 @Configuration
@@ -37,6 +38,7 @@ public class IdentityDataRestConfig implements RepositoryRestConfigurer {
         RepositoryRestConfigurerHelper
             .disableHttpMethodsForDomainTypes(config, restrictedDomainTypes, unsupportedHttpMethods);
         config.exposeIdsFor(domainTypes);
+        config.getProjectionConfiguration().addProjection(InlineAuthorities.class);
         RepositoryRestConfigurer.super.configureRepositoryRestConfiguration(config, cors);
     }
 }
