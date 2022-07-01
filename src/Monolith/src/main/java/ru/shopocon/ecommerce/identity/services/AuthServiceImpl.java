@@ -137,24 +137,27 @@ public class AuthServiceImpl implements AuthService {
             final UserResponseDto userResponse = userMapper.mapToUserResponseDto(user);
             return ResponseEntity.ok(new AuthResponse(userResponse));
         }
-        if (isBlank(encryptedRefreshToken)) {
-            return createNoUserRefreshResponse();
-        }
-        final JwtGetBodyDto tokenBody = tokenProvider.getBodyFromEncryptedToken(encryptedRefreshToken);
-        if (tokenBody.status() != SUCCESS) {
-            return createNoUserRefreshResponse();
-        }
-        val optionalUser = userRepository.findByUsername(tokenBody.username());
-        if (optionalUser.isEmpty()) {
-            return createNoUserRefreshResponse();
-        }
-        val user = optionalUser.get();
-        final UserDetailsJwt userDetailsJwt = userMapper.mapToUserDetailsJwt(user);
-        final UserResponseDto userResponse = userMapper.mapToUserResponseDto(user);
-        boolean rememberMe = tokenProvider.getRememberMeByRefreshCookieMaxAge(request);
-        final Cookie accessCookie = tokenProvider.createAccessCookie(userDetailsJwt, rememberMe);
-        response.addCookie(accessCookie);
-        return ResponseEntity.ok(new AuthResponse(userResponse));
+        return ResponseEntity.ok(new AuthResponse(null));
+
+
+//        if (isBlank(encryptedRefreshToken)) {
+//            return createNoUserRefreshResponse();
+//        }
+//        final JwtGetBodyDto tokenBody = tokenProvider.getBodyFromEncryptedToken(encryptedRefreshToken);
+//        if (tokenBody.status() != SUCCESS) {
+//            return createNoUserRefreshResponse();
+//        }
+//        val optionalUser = userRepository.findByUsername(tokenBody.username());
+//        if (optionalUser.isEmpty()) {
+//            return createNoUserRefreshResponse();
+//        }
+//        val user = optionalUser.get();
+//        final UserDetailsJwt userDetailsJwt = userMapper.mapToUserDetailsJwt(user);
+//        final UserResponseDto userResponse = userMapper.mapToUserResponseDto(user);
+//        boolean rememberMe = tokenProvider.getRememberMeByRefreshCookieMaxAge(request);
+//        final Cookie accessCookie = tokenProvider.createAccessCookie(userDetailsJwt, rememberMe);
+//        response.addCookie(accessCookie);
+//        return ResponseEntity.ok(new AuthResponse(userResponse));
     }
 
     @Override
@@ -181,9 +184,9 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-    private ResponseEntity<AuthResponse> createNoUserRefreshResponse() {
-        return ResponseEntity.ok(new AuthResponse(null));
-    }
+//    private ResponseEntity<AuthResponse> createNoUserRefreshResponse() {
+//        return ResponseEntity.ok(new AuthResponse(null));
+//    }
 
     private void checkAlreadyAuthenticated(String existingEncryptedAccessToken,
                                            String existingEncryptedRefreshToken,
