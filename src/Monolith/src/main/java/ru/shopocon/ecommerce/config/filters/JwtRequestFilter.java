@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 import static ru.shopocon.ecommerce.common.util.StringUtils.isBlank;
+import static ru.shopocon.ecommerce.common.util.StringUtils.isNotBlank;
 import static ru.shopocon.ecommerce.identity.model.types.JwtTokenValidationStatus.SUCCESS;
 
 @Slf4j
@@ -43,19 +44,35 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
-        try {
-            boolean isAuthenticated = authenticateByAccessToken(request);
-            if (!isAuthenticated) {
-                authenticateByRefreshToken(request, response);
-            }
-        } catch (Exception ex) {
-            log.error("Cannot set user authentication", ex);
-        }
+        doJwtFilter(request, response);
         filterChain.doFilter(request, response);
     }
 
-    private boolean authenticateByAccessToken(@NonNull HttpServletRequest request) {
-        String accessToken = jwtTokenProvider.extractAccessTokenFromCookie(request);
+    private void doJwtFilter(@NonNull HttpServletRequest request,
+                             @NonNull HttpServletResponse response) {
+        try {
+            String accessToken = jwtTokenProvider.extractAccessTokenFromCookie(request);
+            boolean isAuthenticatedByAccessToken = authenticateByAccessToken(request, accessToken);
+            if (isAuthenticatedByAccessToken) {
+                return;
+            }
+            String refreshToken = jwtTokenProvider.extractRefreshTokenFromCookie(request);
+            boolean isAuthenticatedByRefreshToken = authenticateByRefreshToken(request, response, refreshToken);
+            if (isAuthenticatedByRefreshToken) {
+                return;
+            }
+            if (isNotBlank(accessToken)) {
+                jwtTokenProvider.addAccessCleanCookie(response);
+            }
+            if (isNotBlank(refreshToken)) {
+                jwtTokenProvider.addRefreshCleanCookie(response);
+            }
+        } catch (Exception ex) {
+            log.error("Cannot perform jwt filter", ex);
+        }
+    }
+
+    private boolean authenticateByAccessToken(@NonNull HttpServletRequest request, String accessToken) {
         if (isBlank(accessToken)) {
             return false;
         }
@@ -68,36 +85,37 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         return true;
     }
 
-    private void authenticateByRefreshToken(@NonNull HttpServletRequest request,
-                                            @NonNull HttpServletResponse response) {
-        String refreshToken = jwtTokenProvider.extractRefreshTokenFromCookie(request);
+    private boolean authenticateByRefreshToken(@NonNull HttpServletRequest request,
+                                               @NonNull HttpServletResponse response,
+                                               String refreshToken) {
         if (isBlank(refreshToken)) {
-            return;
+            return false;
         }
         JwtGetBodyDto tokenBody = jwtTokenProvider.getBody(refreshToken);
         if (tokenBody.status() != SUCCESS) {
-            return;
+            return false;
         }
         final String username = tokenBody.userDetailsJwt().getUsername();
         if (isBlank(username)) {
-            return;
+            return false;
         }
         val optionalUser = userRepository.findByUsername(username);
         if (optionalUser.isEmpty()) {
-            return;
+            return false;
         }
         final User user = optionalUser.get();
         if (!user.isEnabled() ||
             !user.isAccountNonExpired() ||
             !user.isAccountNonLocked() ||
             !user.isCredentialsNonExpired()) {
-            return;
+            return false;
         }
         final UserDetailsJwt userDetailsJwt = userMapper.mapToUserDetailsJwt(user);
         boolean rememberMe = jwtTokenProvider.getRememberMeByRefreshCookieMaxAge(request);
         final Cookie accessCookie = jwtTokenProvider.createAccessCookie(userDetailsJwt, rememberMe);
         response.addCookie(accessCookie);
         setAuthentication(request, userDetailsJwt);
+        return true;
     }
 
     private void setAuthentication(@NonNull HttpServletRequest request, UserDetailsJwt userDetailsJwt) {

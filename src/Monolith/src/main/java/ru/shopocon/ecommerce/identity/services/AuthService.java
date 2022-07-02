@@ -32,8 +32,7 @@ public interface AuthService {
     ResponseEntity<SignOutResponse> signOut(HttpServletRequest request,
                                             HttpServletResponse response);
 
-    ResponseEntity<AuthResponse> refresh(String encryptedRefreshToken,
-                                         HttpServletRequest request,
+    ResponseEntity<AuthResponse> refresh(HttpServletRequest request,
                                          HttpServletResponse response,
                                          Authentication authentication,
                                          Principal principal);

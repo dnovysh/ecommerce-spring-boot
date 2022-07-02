@@ -30,7 +30,6 @@ import javax.servlet.http.HttpSession;
 import java.security.Principal;
 
 import static org.springframework.http.HttpStatus.CREATED;
-import static ru.shopocon.ecommerce.common.util.StringUtils.isBlank;
 import static ru.shopocon.ecommerce.identity.model.types.JwtTokenValidationStatus.SUCCESS;
 
 @Slf4j
@@ -127,8 +126,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseEntity<AuthResponse> refresh(String encryptedRefreshToken,
-                                                HttpServletRequest request,
+    public ResponseEntity<AuthResponse> refresh(HttpServletRequest request,
                                                 HttpServletResponse response,
                                                 Authentication authentication,
                                                 Principal principal) {
@@ -138,26 +136,6 @@ public class AuthServiceImpl implements AuthService {
             return ResponseEntity.ok(new AuthResponse(userResponse));
         }
         return ResponseEntity.ok(new AuthResponse(null));
-
-
-//        if (isBlank(encryptedRefreshToken)) {
-//            return createNoUserRefreshResponse();
-//        }
-//        final JwtGetBodyDto tokenBody = tokenProvider.getBodyFromEncryptedToken(encryptedRefreshToken);
-//        if (tokenBody.status() != SUCCESS) {
-//            return createNoUserRefreshResponse();
-//        }
-//        val optionalUser = userRepository.findByUsername(tokenBody.username());
-//        if (optionalUser.isEmpty()) {
-//            return createNoUserRefreshResponse();
-//        }
-//        val user = optionalUser.get();
-//        final UserDetailsJwt userDetailsJwt = userMapper.mapToUserDetailsJwt(user);
-//        final UserResponseDto userResponse = userMapper.mapToUserResponseDto(user);
-//        boolean rememberMe = tokenProvider.getRememberMeByRefreshCookieMaxAge(request);
-//        final Cookie accessCookie = tokenProvider.createAccessCookie(userDetailsJwt, rememberMe);
-//        response.addCookie(accessCookie);
-//        return ResponseEntity.ok(new AuthResponse(userResponse));
     }
 
     @Override
@@ -183,10 +161,6 @@ public class AuthServiceImpl implements AuthService {
                 new InvalidPrincipalException("Principal object does not have a valid username"));
         }
     }
-
-//    private ResponseEntity<AuthResponse> createNoUserRefreshResponse() {
-//        return ResponseEntity.ok(new AuthResponse(null));
-//    }
 
     private void checkAlreadyAuthenticated(String existingEncryptedAccessToken,
                                            String existingEncryptedRefreshToken,

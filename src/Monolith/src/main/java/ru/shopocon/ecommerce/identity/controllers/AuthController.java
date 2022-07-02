@@ -68,10 +68,9 @@ public class AuthController {
 
     @GetMapping(value = "/refresh")
     public ResponseEntity<AuthResponse> refresh(
-        @CookieValue(name = REFRESH_COOKIE_NAME, required = false) String encryptedRefreshToken,
         HttpServletRequest request, HttpServletResponse response,
         Authentication authentication, Principal principal
     ) {
-        return authService.refresh(encryptedRefreshToken, request, response, authentication, principal);
+        return authService.refresh(request, response, authentication, principal);
     }
 }
