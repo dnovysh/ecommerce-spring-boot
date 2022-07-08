@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -86,10 +87,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             concatBasePath("/auth/refresh")
         };
         final String[] catalogPermitAllPaths = {
-            concatBasePath("/catalog-categories/**"),
             concatBasePath("/catalog-products/**"),
             concatBasePath("/catalog-reviews/**")
         };
+        final String categoriesUrl = concatBasePath("/catalog-categories/**");
 
         http.cors().and()
             .csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
@@ -104,6 +105,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(catalogPermitAllPaths).permitAll()
                 .antMatchers(concatBasePath("/identity-roles/**")).hasRole("ADMIN")
                 .antMatchers(concatBasePath("/identity-authorities/**")).hasRole("ADMIN")
+                .antMatchers(HttpMethod.GET, categoriesUrl).permitAll()
+                .antMatchers(HttpMethod.POST, categoriesUrl).hasAuthority("category.create")
+                .antMatchers(HttpMethod.PUT, categoriesUrl).hasAuthority("category.update")
+                .antMatchers(HttpMethod.DELETE, categoriesUrl).hasAuthority("category.delete")
             )
             .authorizeRequests().anyRequest().authenticated().and()
             .formLogin().disable()

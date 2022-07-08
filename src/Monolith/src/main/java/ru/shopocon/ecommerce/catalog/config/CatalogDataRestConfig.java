@@ -20,7 +20,12 @@ public class CatalogDataRestConfig implements RepositoryRestConfigurer {
         final HttpMethod[] unsupportedHttpMethods = {
             HttpMethod.POST,
             HttpMethod.PUT,
+            HttpMethod.PATCH,
             HttpMethod.DELETE
+        };
+        final Class<?>[] domainTypesWithUnsupportedHttpMethods = {
+            Product.class,
+            Review.class
         };
         final Class<?>[] domainTypes = {
             Category.class,
@@ -28,7 +33,7 @@ public class CatalogDataRestConfig implements RepositoryRestConfigurer {
             Review.class
         };
         RepositoryRestConfigurerHelper
-            .disableHttpMethodsForDomainTypes(config, domainTypes, unsupportedHttpMethods);
+            .disableHttpMethodsForDomainTypes(config, domainTypesWithUnsupportedHttpMethods, unsupportedHttpMethods);
         config.exposeIdsFor(domainTypes);
         config.getProjectionConfiguration().addProjection(InlineCategory.class);
         RepositoryRestConfigurer.super.configureRepositoryRestConfiguration(config, cors);

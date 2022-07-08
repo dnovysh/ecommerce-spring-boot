@@ -21,11 +21,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @RestResource(path = "findByProductName", rel = "findByProduct")
     Page<Product> findByNameContainingIgnoreCaseOrderByPopularityIndexDescRatingDescIdDesc(
-        @RequestParam String name,  Pageable pageable
+        @RequestParam String name, Pageable pageable
     );
 
     @RestResource(path = "findByCategoryIdAndProductName", rel = "findByCategoryAndProduct")
     Page<Product> findByCategoryIdAndNameContainingIgnoreCaseOrderByPopularityIndexDescRatingDescIdDesc(
-        @RequestParam Long id, @RequestParam(required = false) String name,  Pageable pageable
+        @RequestParam Long id, @RequestParam(required = false) String name, Pageable pageable
     );
 }
