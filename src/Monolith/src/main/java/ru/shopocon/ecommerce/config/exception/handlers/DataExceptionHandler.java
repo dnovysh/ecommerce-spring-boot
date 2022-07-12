@@ -28,19 +28,40 @@ public class DataExceptionHandler {
     public ResponseEntity<ApiError> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
         log.error("DataIntegrityViolationException", ex);
         if (ex.getCause() instanceof ConstraintViolationException constraintViolationException) {
-            val cause = constraintViolationException.getCause();
-            if (cause != null && cause.getMessage().toLowerCase().contains("un_user_username")) {
-                return ApiErrorBuilder.builder(CONFLICT, "This username is already in use")
-                    .addApiValidationError(new FieldError(
-                        "user", "username", "This email is already in use"))
-                    .buildTypedResponseEntity();
-            }
-            return ApiErrorBuilder.builder(CONFLICT, "Constraint violation")
-                .setDebugMessage(constraintViolationException.getMessage())
-                .buildTypedResponseEntity();
+            return getConstraintViolationErrorResponse(constraintViolationException);
         }
         return ApiErrorBuilder.builder(INTERNAL_SERVER_ERROR, SOMETHING_WENT_WRONG)
             .setDebugMessage(ex.getMessage())
+            .buildTypedResponseEntity();
+    }
+
+    private ResponseEntity<ApiError> getConstraintViolationErrorResponse(
+        ConstraintViolationException constraintViolationException
+    ) {
+        val cause = constraintViolationException.getCause();
+        if (cause != null) {
+            if (cause.getMessage().toLowerCase().contains("un_user_username")) {
+                return buildUnUserUsernameResponse();
+            } else if (cause.getMessage().toLowerCase().contains("un_product_category_name")) {
+                return buildUnProductCategoryNameResponse();
+            }
+        }
+        return ApiErrorBuilder.builder(CONFLICT, "Constraint violation")
+            .setDebugMessage(constraintViolationException.getMessage())
+            .buildTypedResponseEntity();
+    }
+
+    private ResponseEntity<ApiError> buildUnUserUsernameResponse() {
+        return ApiErrorBuilder.builder(CONFLICT, "This username is already in use")
+            .addApiValidationError(new FieldError(
+                "user", "username", "This email is already in use"))
+            .buildTypedResponseEntity();
+    }
+
+    private ResponseEntity<ApiError> buildUnProductCategoryNameResponse() {
+        return ApiErrorBuilder.builder(CONFLICT, "This category name already exists")
+            .addApiValidationError(new FieldError(
+                "category", "name", "This category name already exists"))
             .buildTypedResponseEntity();
     }
 }
