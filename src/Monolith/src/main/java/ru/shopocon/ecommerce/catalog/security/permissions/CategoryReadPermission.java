@@ -9,6 +9,6 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@PreAuthorize("hasAuthority('category.create')")
-public @interface CategoryCreatePermission {
+@PreAuthorize("hasAuthority('category.read')")
+public @interface CategoryReadPermission {
 }

@@ -61,6 +61,7 @@ values -- user
        (16, 'dealer.product', 'dealer.product.update'),
        (17, 'dealer.product', 'dealer.product.delete'),
        -- category
+       (20, 'category', 'category.create'),
        (21, 'category', 'category.read'),
        (22, 'category', 'category.update'),
        (23, 'category', 'category.delete');
@@ -100,9 +101,12 @@ values -- admin - user authority
        -- user - product read only
        (18, 3, 11),
        -- admin - category authority
-       (20, 1, 21),
-       (21, 1, 22),
-       (22, 1, 23);
+       (20, 1, 20),
+       (21, 1, 21),
+       (22, 1, 22),
+       (23, 1, 23),
+       -- dealer - category authority
+       (25, 2, 21);
 -- -----------------------------------------------------
 -- User-role data
 -- -----------------------------------------------------
