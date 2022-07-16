@@ -19,9 +19,9 @@ import java.time.OffsetDateTime;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "product", schema = "ec_catalog",
-        uniqueConstraints = {@UniqueConstraint(
-                name = "un_product_dealer_sku", columnNames = {"dealer_id", "sku"}
-        )}
+    uniqueConstraints = {@UniqueConstraint(
+        name = "un_product_dealer_sku", columnNames = {"dealer_id", "sku"}
+    )}
 )
 public class Product {
 
@@ -40,7 +40,8 @@ public class Product {
 
     @ManyToOne()
     @Fetch(FetchMode.JOIN)
-    @JoinColumn(name = "category_id", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "category_id", referencedColumnName = "id", nullable = false,
+        foreignKey = @ForeignKey(name = "fk_product_category"))
     private Category category;
 
     @Column(name = "name", nullable = false)

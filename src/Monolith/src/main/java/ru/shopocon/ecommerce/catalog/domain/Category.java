@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -24,6 +25,7 @@ public class Category {
     @Column(name = "id")
     private Long id;
 
+    @NotBlank(message = "Name is mandatory")
     @Column(name = "category_name", nullable = false)
     private String name;
 }

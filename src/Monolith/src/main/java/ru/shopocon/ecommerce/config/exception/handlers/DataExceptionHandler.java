@@ -40,10 +40,13 @@ public class DataExceptionHandler {
     ) {
         val cause = constraintViolationException.getCause();
         if (cause != null) {
-            if (cause.getMessage().toLowerCase().contains("un_user_username")) {
+            val causeLowerCaseMessage = cause.getMessage().toLowerCase();
+            if (causeLowerCaseMessage.contains("un_user_username")) {
                 return buildUnUserUsernameResponse();
-            } else if (cause.getMessage().toLowerCase().contains("un_product_category_name")) {
+            } else if (causeLowerCaseMessage.contains("un_product_category_name")) {
                 return buildUnProductCategoryNameResponse();
+            } else if (causeLowerCaseMessage.contains("fk_product_category")) {
+                return buildFkProductCategoryResponse();
             }
         }
         return ApiErrorBuilder.builder(CONFLICT, "Constraint violation")
@@ -62,6 +65,11 @@ public class DataExceptionHandler {
         return ApiErrorBuilder.builder(CONFLICT, "This category name already exists")
             .addApiValidationError(new FieldError(
                 "category", "name", "This category name already exists"))
+            .buildTypedResponseEntity();
+    }
+
+    private ResponseEntity<ApiError> buildFkProductCategoryResponse() {
+        return ApiErrorBuilder.builder(CONFLICT, "This category is already used in products")
             .buildTypedResponseEntity();
     }
 }
