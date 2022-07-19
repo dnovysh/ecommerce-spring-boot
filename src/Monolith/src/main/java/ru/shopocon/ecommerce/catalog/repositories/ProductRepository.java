@@ -28,4 +28,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Page<Product> findByCategoryIdAndNameContainingIgnoreCaseOrderByPopularityIndexDescRatingDescIdDesc(
         @RequestParam Long id, @RequestParam(required = false) String name, Pageable pageable
     );
+
+    Page<Product> findAllByDealerId(long dealerId, Pageable pageable);
 }

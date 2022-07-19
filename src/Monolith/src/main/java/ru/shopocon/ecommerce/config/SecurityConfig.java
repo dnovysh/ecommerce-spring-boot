@@ -90,7 +90,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             concatBasePath("/catalog-products/**"),
             concatBasePath("/catalog-reviews/**")
         };
+
         final String categoriesUrl = concatBasePath("/catalog-categories/**");
+        final String productManagementUrl =
+            concatBasePath("/management/products/**");
 
         http.cors().and()
             .csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
@@ -110,6 +113,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.PUT, categoriesUrl).hasAuthority("category.update")
                 .antMatchers(HttpMethod.PATCH, categoriesUrl).hasAuthority("category.update")
                 .antMatchers(HttpMethod.DELETE, categoriesUrl).hasAuthority("category.delete")
+                .antMatchers(HttpMethod.GET, productManagementUrl).permitAll()
+//                .hasAnyAuthority(
+//                    "product.read", "dealer.product.read")
             )
             .authorizeRequests().anyRequest().authenticated().and()
             .formLogin().disable()
