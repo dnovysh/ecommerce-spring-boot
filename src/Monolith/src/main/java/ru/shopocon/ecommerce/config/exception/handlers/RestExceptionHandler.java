@@ -1,6 +1,7 @@
 package ru.shopocon.ecommerce.config.exception.handlers;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
@@ -8,12 +9,15 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeType;
+import org.springframework.validation.BindException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.MethodArgumentConversionNotSupportedException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import ru.shopocon.ecommerce.common.model.ApiErrorBuilder;
 
@@ -48,11 +52,54 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @Override
+    protected ResponseEntity<Object> handleTypeMismatch(
+        TypeMismatchException ex, HttpHeaders headers,
+        HttpStatus status, WebRequest request
+    ) {
+        if (ex instanceof MethodArgumentTypeMismatchException methodArgumentException) {
+            return ApiErrorBuilder.builder(BAD_REQUEST, "Method argument type mismatch error")
+                .addApiValidationError(
+                    methodArgumentException.getParameter().getExecutable().getName(),
+                    methodArgumentException.getName(),
+                    methodArgumentException.getValue(),
+                    "Invalid method argument value")
+                .buildResponseEntity();
+        }
+        if (ex instanceof MethodArgumentConversionNotSupportedException notSupportedException) {
+            return ApiErrorBuilder.builder(BAD_REQUEST, "Method argument type mismatch error")
+                .addApiValidationError(
+                    notSupportedException.getParameter().getExecutable().getName(),
+                    notSupportedException.getName(),
+                    notSupportedException.getValue(),
+                    "Method argument conversion not supported")
+                .buildResponseEntity();
+        }
+        return ApiErrorBuilder.builder(BAD_REQUEST, "Type mismatch error")
+            .addApiValidationError(
+                "unknown",
+                ex.getPropertyName() == null ? "unknown" : ex.getPropertyName(),
+                ex.getValue(),
+                "Invalid value")
+            .buildResponseEntity();
+    }
+
+    @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
         MethodArgumentNotValidException ex, HttpHeaders headers,
         HttpStatus status, WebRequest request
     ) {
         return ApiErrorBuilder.builder(BAD_REQUEST, "Validation error")
+            .addApiValidationFieldErrors(ex.getBindingResult().getFieldErrors())
+            .addApiValidationObjectErrors(ex.getBindingResult().getGlobalErrors())
+            .buildResponseEntity();
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleBindException(
+        BindException ex, HttpHeaders headers,
+        HttpStatus status, WebRequest request
+    ) {
+        return ApiErrorBuilder.builder(BAD_REQUEST, "Bind error")
             .addApiValidationFieldErrors(ex.getBindingResult().getFieldErrors())
             .addApiValidationObjectErrors(ex.getBindingResult().getGlobalErrors())
             .buildResponseEntity();

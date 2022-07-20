@@ -3,8 +3,11 @@ package ru.shopocon.ecommerce.catalog.controllers;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import ru.shopocon.ecommerce.catalog.model.ProductGetAllRequestModel;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import ru.shopocon.ecommerce.catalog.model.ProductGetAllRequestFilter;
 import ru.shopocon.ecommerce.catalog.model.ProductGetAllResponseModel;
 import ru.shopocon.ecommerce.catalog.services.ProductManagementService;
 
@@ -21,10 +24,10 @@ public class ProductManagementController {
     @GetMapping("/products")
     public ResponseEntity<ProductGetAllResponseModel> getAllProducts(
         @RequestParam(required = false) Long dealerId,
-        ProductGetAllRequestModel requestDto,
+        ProductGetAllRequestFilter filter,
         @PageableDefault(sort = "id") Pageable pageable
     ) {
         return ResponseEntity.ok(productManagementService
-            .getAllProducts(dealerId, requestDto, pageable));
+            .getAllProducts(dealerId, filter, pageable));
     }
 }
