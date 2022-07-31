@@ -25,7 +25,7 @@ public class ProductManagementController {
     public ResponseEntity<ProductGetAllResponseModel> getAllProducts(
         @RequestParam(required = false) Long dealerId,
         ProductGetAllRequestFilter filter,
-        @PageableDefault(sort = "id") Pageable pageable
+        @PageableDefault(sort = "id", size = 20) Pageable pageable
     ) {
         return ResponseEntity.ok(productManagementService
             .getAllProducts(dealerId, filter, pageable));
