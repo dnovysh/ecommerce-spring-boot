@@ -1,11 +1,11 @@
 package ru.shopocon.ecommerce.catalog.domain;
 
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.*;
 
+import javax.persistence.Entity;
+import javax.persistence.ForeignKey;
+import javax.persistence.Table;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -38,8 +38,9 @@ public class Product {
     @Column(name = "sku", nullable = false)
     private String sku;
 
-    @ManyToOne()
-    @Fetch(FetchMode.JOIN)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @Fetch(FetchMode.SELECT)
+    @BatchSize(size = 20)
     @JoinColumn(name = "category_id", referencedColumnName = "id", nullable = false,
         foreignKey = @ForeignKey(name = "fk_product_category"))
     private Category category;

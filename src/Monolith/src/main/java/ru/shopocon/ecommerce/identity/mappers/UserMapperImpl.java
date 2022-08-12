@@ -15,6 +15,12 @@ import java.util.stream.Collectors;
 @Component
 public class UserMapperImpl implements UserMapper {
 
+    private final DealerMapper dealerMapper;
+
+    public UserMapperImpl(DealerMapper dealerMapper) {
+        this.dealerMapper = dealerMapper;
+    }
+
     @Override
     public UserDetailsJwt mapToUserDetailsJwt(@NonNull User user) {
         return new UserDetailsJwt(
@@ -53,10 +59,7 @@ public class UserMapperImpl implements UserMapper {
         if (user.getDealer() == null) {
             return null;
         }
-        return new DealerDto(
-            user.getDealer().getId(),
-            user.getDealer().getName()
-        );
+        return dealerMapper.mapToDealerDto(user.getDealer());
     }
 
     private Set<String> extractRolesAsStringSet(@NonNull User user) {

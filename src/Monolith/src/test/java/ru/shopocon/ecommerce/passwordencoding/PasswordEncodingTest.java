@@ -27,10 +27,11 @@ public class PasswordEncodingTest {
     Stream<DynamicTest> testDemoUserCredentials() {
         final var demoUserCredentials = List.of(
             new userNamePasswordTuple("shopocon1@shopocon.com", "shopocon"),
-            new userNamePasswordTuple("shopocon2shopocon.com", "eShopOnContainer"),
+            new userNamePasswordTuple("shopocon2@shopocon.com", "eShopOnContainer"),
             new userNamePasswordTuple("stpete@stpete.com", "password"),
             new userNamePasswordTuple("dunedin@dunedin.com", "password"),
             new userNamePasswordTuple("keywest@keywest.com", "password"),
+            new userNamePasswordTuple("primeng@primeng.com", "password"),
             new userNamePasswordTuple("scott@oracle.com", "tiger"),
             new userNamePasswordTuple("user@example.com", "password"),
             new userNamePasswordTuple("buyer@example.com", "shopper")

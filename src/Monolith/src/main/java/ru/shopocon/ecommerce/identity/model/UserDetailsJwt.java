@@ -4,12 +4,13 @@ import lombok.Getter;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import ru.shopocon.ecommerce.identity.domain.types.DealerRepresentative;
 
 import java.util.Collection;
 import java.util.Set;
 
 @Getter
-public class UserDetailsJwt implements UserDetails {
+public class UserDetailsJwt implements UserDetails, DealerRepresentative {
 
     private static final String PASSWORD = "User password not provided by token";
 
@@ -55,5 +56,10 @@ public class UserDetailsJwt implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Set.copyOf(authorities);
+    }
+
+    @Override
+    public Long getIdOfDealerRepresentedByUser() {
+        return dealerRepresentative ? dealer.id() : null;
     }
 }

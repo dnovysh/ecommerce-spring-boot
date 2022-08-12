@@ -6,6 +6,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import ru.shopocon.ecommerce.identity.domain.Dealer;
+import ru.shopocon.ecommerce.identity.domain.types.DealerRepresentative;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -21,7 +22,7 @@ import java.util.stream.Stream;
 @Builder(toBuilder = true)
 @Entity
 @Table(name = "user", schema = "ec_identity")
-public class User implements UserDetails, CredentialsContainer, Serializable {
+public class User implements UserDetails, CredentialsContainer, DealerRepresentative, Serializable {
 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
@@ -114,5 +115,10 @@ public class User implements UserDetails, CredentialsContainer, Serializable {
     @Override
     public void eraseCredentials() {
         this.password = null;
+    }
+
+    @Override
+    public Long getIdOfDealerRepresentedByUser() {
+        return dealerRepresentative ? dealer.getId() : null;
     }
 }

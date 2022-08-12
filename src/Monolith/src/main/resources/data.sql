@@ -21,7 +21,7 @@ insert into ec_identity.user (id, username, password,
                               user_alias)
 values (1, 'shopocon1@shopocon.com', '$2a$12$jVMuAb2oXwyugDwTYZiBNOv829gja/.PtUdWckhIFuSUIuuhSAJMa',
         true, true, true, true, true, 1, 'Admin'),
-       (2, 'shopocon2shopocon.com', '$2a$12$5T6nLjVIxNnQmaL7LH2WDevAvnbY.9efAFqPN2OugbxVytCZ64So6',
+       (2, 'shopocon2@shopocon.com', '$2a$12$5T6nLjVIxNnQmaL7LH2WDevAvnbY.9efAFqPN2OugbxVytCZ64So6',
         true, true, true, true, true, 1, 'Shopocon Dealer'),
        (101, 'stpete@stpete.com', '$2a$12$TqpXmzpEJXeHwgbpAm61X.izRSLcNGZ7joG0laQ2NZgWrvGaWF0sm',
         true, true, true, true, true, 11, 'Stpete'),
@@ -29,6 +29,8 @@ values (1, 'shopocon1@shopocon.com', '$2a$12$jVMuAb2oXwyugDwTYZiBNOv829gja/.PtUd
         true, true, true, true, true, 12, 'Dunedin'),
        (103, 'keywest@keywest.com', '$2a$12$TqpXmzpEJXeHwgbpAm61X.izRSLcNGZ7joG0laQ2NZgWrvGaWF0sm',
         true, true, true, true, true, 13, 'Keywest'),
+       (105, 'primeng@primeng.com', '$2a$12$TqpXmzpEJXeHwgbpAm61X.izRSLcNGZ7joG0laQ2NZgWrvGaWF0sm',
+        true, true, true, true, true, 21, 'PrimeNG'),
        (201, 'scott@oracle.com', '$2a$12$F6RWX/UpzjUWTIjyglTnxuPmt.hDiVzQMT5/d8kaqCRRj/rTXNW2q',
         true, true, true, true, false, null, 'Scott'),
        (202, 'user@example.com', '$2a$12$TqpXmzpEJXeHwgbpAm61X.izRSLcNGZ7joG0laQ2NZgWrvGaWF0sm',
@@ -118,9 +120,10 @@ values (1, 1, 1),
        (3, 101, 2),
        (4, 102, 2),
        (5, 103, 2),
-       (6, 201, 1),
-       (7, 202, 3),
-       (8, 203, 3);
+       (6, 105, 2),
+       (7, 201, 1),
+       (8, 202, 3),
+       (9, 203, 3);
 
 -- -----------------------------------------------------
 -- Product-category data
