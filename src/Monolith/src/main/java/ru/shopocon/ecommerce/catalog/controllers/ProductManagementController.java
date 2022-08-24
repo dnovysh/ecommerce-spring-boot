@@ -4,8 +4,8 @@ import lombok.val;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.hateoas.PagedModel.PageMetadata;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -82,7 +82,6 @@ public class ProductManagementController {
         throw new ResponseStatusException(NOT_FOUND, "Product Not Found");
     }
 
-
     @ProductDeletePermission
     @DeleteMapping("/products")
     public void deleteAllProductsById(@Valid @RequestBody ProductDeleteAllByIdRequestModel requestModel,
@@ -99,7 +98,7 @@ public class ProductManagementController {
         try {
             productManagementService.deleteAllByIdWithDealerIdCheck(ids, idOfDealerRepresentedByUser);
         } catch (DealerNotMatchException ex) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, ex.getMessage());
+            throw new AccessDeniedException(ex.getMessage(), ex);
         }
     }
 
@@ -114,7 +113,7 @@ public class ProductManagementController {
         try {
             productManagementService.deleteByIdWithDealerIdCheck(id, idOfDealerRepresentedByUser);
         } catch (DealerNotMatchException ex) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, ex.getMessage());
+            throw new AccessDeniedException(ex.getMessage(), ex);
         }
     }
 
