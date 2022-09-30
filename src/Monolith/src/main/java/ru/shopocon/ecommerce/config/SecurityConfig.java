@@ -117,8 +117,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.DELETE, categoriesUrl).hasAuthority("category.delete")
                 .antMatchers(HttpMethod.GET, productManagementUrl).hasAnyAuthority(
                     "product.read", "dealer.product.read")
+                .antMatchers(HttpMethod.POST, productManagementUrl).hasAnyAuthority(
+                    "product.create", "dealer.product.create")
+                .antMatchers(HttpMethod.PUT, productManagementUrl).hasAnyAuthority(
+                    "product.update", "dealer.product.update")
+                .antMatchers(HttpMethod.DELETE, productManagementUrl).hasAnyAuthority(
+                    "product.delete", "dealer.product.delete")
             )
-            .authorizeRequests().anyRequest().authenticated().and()
+            .authorizeRequests().anyRequest().denyAll().and()
             .formLogin().disable()
             .httpBasic().disable();
 

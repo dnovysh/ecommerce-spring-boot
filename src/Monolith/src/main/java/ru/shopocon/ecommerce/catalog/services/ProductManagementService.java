@@ -3,6 +3,7 @@ package ru.shopocon.ecommerce.catalog.services;
 
 import org.springframework.data.domain.Pageable;
 import ru.shopocon.ecommerce.catalog.domain.Product;
+import ru.shopocon.ecommerce.catalog.model.ProductCreateModel;
 import ru.shopocon.ecommerce.catalog.model.ProductGetAllRequestFilter;
 import ru.shopocon.ecommerce.catalog.model.ProductGetAllResponseModel;
 
@@ -16,6 +17,8 @@ public interface ProductManagementService {
                                        Pageable pageable);
 
     Optional<Product> findById(Long id);
+
+    Product create(ProductCreateModel productCreateModel);
 
     void deleteById(Long id);
 

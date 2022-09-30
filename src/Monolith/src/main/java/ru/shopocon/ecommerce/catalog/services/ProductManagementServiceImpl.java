@@ -8,8 +8,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import ru.shopocon.ecommerce.catalog.domain.Product;
 import ru.shopocon.ecommerce.catalog.mappers.ProductGetAllResponseModelMapper;
+import ru.shopocon.ecommerce.catalog.model.ProductCreateModel;
 import ru.shopocon.ecommerce.catalog.model.ProductGetAllRequestFilter;
 import ru.shopocon.ecommerce.catalog.model.ProductGetAllResponseModel;
+import ru.shopocon.ecommerce.catalog.repositories.CategoryRepository;
 import ru.shopocon.ecommerce.catalog.repositories.ProductRepository;
 import ru.shopocon.ecommerce.common.exception.exceptions.DealerNotMatchException;
 
@@ -23,11 +25,15 @@ import static ru.shopocon.ecommerce.catalog.specifications.ProductSpecifications
 public class ProductManagementServiceImpl implements ProductManagementService {
 
     private final ProductRepository productRepository;
+
+    private final CategoryRepository categoryRepository;
     private final ProductGetAllResponseModelMapper responseModelMapper;
 
     public ProductManagementServiceImpl(ProductRepository productRepository,
+                                        CategoryRepository categoryRepository,
                                         ProductGetAllResponseModelMapper responseModelMapper) {
         this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
         this.responseModelMapper = responseModelMapper;
     }
 
@@ -62,6 +68,24 @@ public class ProductManagementServiceImpl implements ProductManagementService {
         return productRepository.findById(id);
     }
 
+    @Override
+    @Transactional()
+    public Product create(ProductCreateModel productCreateModel) {
+        val category = categoryRepository
+            .findById(productCreateModel.getCategoryId()).orElse(null);
+        val product = new Product().toBuilder()
+            .dealerId(productCreateModel.getDealerId())
+            .sku(productCreateModel.getSku())
+            .category(category)
+            .name(productCreateModel.getName())
+            .description(productCreateModel.getDescription())
+            .image(productCreateModel.getImage())
+            .active(productCreateModel.isActive())
+            .unitsInStock(productCreateModel.getUnitsInStock())
+            .unitPrice(productCreateModel.getUnitPrice())
+            .build();
+        return productRepository.saveAndFlush(product);
+    }
 
     @Override
     @Transactional()

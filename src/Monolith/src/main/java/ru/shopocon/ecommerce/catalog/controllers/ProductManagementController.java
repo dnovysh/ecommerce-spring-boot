@@ -9,10 +9,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-import ru.shopocon.ecommerce.catalog.model.ProductDeleteAllByIdRequestModel;
-import ru.shopocon.ecommerce.catalog.model.ProductGetAllRequestFilter;
-import ru.shopocon.ecommerce.catalog.model.ProductGetAllResponseModel;
-import ru.shopocon.ecommerce.catalog.model.ProductGetByIdResponseModel;
+import ru.shopocon.ecommerce.catalog.model.*;
+import ru.shopocon.ecommerce.catalog.security.permissions.ProductCreatePermission;
 import ru.shopocon.ecommerce.catalog.security.permissions.ProductDeletePermission;
 import ru.shopocon.ecommerce.catalog.security.permissions.ProductReadPermission;
 import ru.shopocon.ecommerce.catalog.services.ProductManagementService;
@@ -23,6 +21,7 @@ import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @RestController
@@ -64,22 +63,43 @@ public class ProductManagementController {
 
     @ProductReadPermission
     @GetMapping("/products/{id}")
-    public ResponseEntity<ProductGetByIdResponseModel> getProductById(
+    public ResponseEntity<ProductResponseModel> getProductById(
         @PathVariable Long id, Authentication authentication
     ) {
         val optionalProduct = productManagementService.findById(id);
         if (optionalProduct.isPresent()) {
             val product = optionalProduct.get();
             if (hasAuthority(authentication, "product.read")) {
-                return ResponseEntity.ok(new ProductGetByIdResponseModel(product));
+                return ResponseEntity.ok(new ProductResponseModel(product));
             }
             final Long idOfDealerRepresentedByUser = dealerAuthenticationManager.getDealerId(authentication);
             if (idOfDealerRepresentedByUser != null &&
                 idOfDealerRepresentedByUser.equals(product.getDealerId())) {
-                return ResponseEntity.ok(new ProductGetByIdResponseModel(product));
+                return ResponseEntity.ok(new ProductResponseModel(product));
             }
         }
         throw new ResponseStatusException(NOT_FOUND, "Product Not Found");
+    }
+
+    @ProductCreatePermission
+    @PostMapping("/products")
+    public ResponseEntity<ProductResponseModel> createProduct(
+        @Valid @RequestBody ProductCreateModel productCreateModel,
+        Authentication authentication
+    ) {
+        if (hasAuthority(authentication, "product.create") &&
+            productCreateModel.getDealerId() == null) {
+            throw new ResponseStatusException(BAD_REQUEST, "Dealer must be specified");
+        } else {
+            final Long idOfDealerRepresentedByUser = dealerAuthenticationManager.getDealerId(authentication);
+            if (productCreateModel.getDealerId() != null &&
+                !productCreateModel.getDealerId().equals(idOfDealerRepresentedByUser)) {
+                throw new AccessDeniedException("You are not a representative of the specified dealer");
+            }
+            productCreateModel.setDealerId(idOfDealerRepresentedByUser);
+        }
+        val product = productManagementService.create(productCreateModel);
+        return ResponseEntity.ok(new ProductResponseModel(product));
     }
 
     @ProductDeletePermission
