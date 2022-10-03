@@ -84,12 +84,14 @@ public class ProductManagementController {
     @ProductCreatePermission
     @PostMapping("/products")
     public ResponseEntity<ProductResponseModel> createProduct(
-        @Valid @RequestBody ProductCreateModel productCreateModel,
+        @Valid @RequestBody ProductCreateRequestModel productCreateRequestModel,
         Authentication authentication
     ) {
-        if (hasAuthority(authentication, "product.create") &&
-            productCreateModel.getDealerId() == null) {
-            throw new ResponseStatusException(BAD_REQUEST, "Dealer must be specified");
+        val productCreateModel = productCreateRequestModel.getProductCreateModel();
+        if (hasAuthority(authentication, "product.create")) {
+            if (productCreateModel.getDealerId() == null) {
+                throw new ResponseStatusException(BAD_REQUEST, "Dealer must be specified");
+            }
         } else {
             final Long idOfDealerRepresentedByUser = dealerAuthenticationManager.getDealerId(authentication);
             if (productCreateModel.getDealerId() != null &&

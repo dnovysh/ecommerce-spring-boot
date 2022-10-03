@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 @NoArgsConstructor
@@ -18,7 +19,7 @@ public class ProductCreateModel {
     @NotBlank(message = "Sku is mandatory")
     private String sku;
 
-    @NotBlank(message = "Category is mandatory")
+    @NotNull(message = "Category is mandatory")
     private Long categoryId;
 
     @NotBlank(message = "Name is mandatory")
@@ -28,12 +29,11 @@ public class ProductCreateModel {
 
     private String image;
 
-    @NotBlank(message = "Active is mandatory")
+    @NotNull(message = "Active is mandatory")
     private boolean active;
 
-    @NotBlank(message = "UnitsInStock is mandatory")
     private int unitsInStock;
 
-    @NotBlank(message = "Price is mandatory")
+    @NotNull(message = "Price is mandatory")
     private BigDecimal unitPrice;
 }
