@@ -5,12 +5,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
 import ru.shopocon.ecommerce.catalog.domain.Product;
 import ru.shopocon.ecommerce.catalog.mappers.ProductGetAllResponseModelMapper;
 import ru.shopocon.ecommerce.catalog.model.ProductCreateModel;
 import ru.shopocon.ecommerce.catalog.model.ProductGetAllRequestFilter;
 import ru.shopocon.ecommerce.catalog.model.ProductGetAllResponseModel;
+import ru.shopocon.ecommerce.catalog.model.ProductUpdateModel;
 import ru.shopocon.ecommerce.catalog.repositories.CategoryRepository;
 import ru.shopocon.ecommerce.catalog.repositories.ProductRepository;
 import ru.shopocon.ecommerce.common.exception.exceptions.DealerNotMatchException;
@@ -89,6 +89,36 @@ public class ProductManagementServiceImpl implements ProductManagementService {
 
     @Override
     @Transactional()
+    public Product update(Long id,
+                          ProductUpdateModel productUpdateModel,
+                          boolean checkDealer,
+                          Long dealerId) {
+        val optionalProduct = productRepository.findById(id);
+        if (optionalProduct.isEmpty()) {
+            return null;
+        }
+        val product = optionalProduct.get();
+        if (checkDealer && !product.getDealerId().equals(dealerId)) {
+            throw new DealerNotMatchException("Dealer doesn't match");
+        }
+        product.setSku(productUpdateModel.getSku());
+        if (!product.getCategory().getId().equals(productUpdateModel.getCategoryId())) {
+            val category = categoryRepository
+                .findById(productUpdateModel.getCategoryId()).orElse(null);
+            product.setCategory(category);
+        }
+        product.setName(productUpdateModel.getName());
+        product.setDescription(productUpdateModel.getDescription());
+        product.setImage(productUpdateModel.getImage());
+        product.setActive(productUpdateModel.isActive());
+        product.setUnitsInStock(productUpdateModel.getUnitsInStock());
+        product.setUnitPrice(productUpdateModel.getUnitPrice());
+        productRepository.flush();
+        return product;
+    }
+
+    @Override
+    @Transactional()
     public void deleteById(Long id) {
         productRepository.deleteById(id);
     }
@@ -96,15 +126,11 @@ public class ProductManagementServiceImpl implements ProductManagementService {
     @Override
     @Transactional()
     public void deleteByIdWithDealerIdCheck(Long id, Long dealerId) {
-        productRepository.findById(id).ifPresent(product -> {
-            val productDealerId = product.getDealerId();
-            Assert.notNull(productDealerId, "Product dealer Id mustn't be null");
-            if (productDealerId.equals(dealerId)) {
-                productRepository.deleteById(id);
-            } else {
-                throw new DealerNotMatchException("Dealer doesn't match");
-            }
-        });
+        boolean havingMismatchedDealer = productRepository.existsByIdAndDealerIdNot(id, dealerId);
+        if (havingMismatchedDealer) {
+            throw new DealerNotMatchException("Dealer doesn't match");
+        }
+        productRepository.deleteById(id);
     }
 
     @Override
@@ -116,11 +142,10 @@ public class ProductManagementServiceImpl implements ProductManagementService {
     @Override
     @Transactional()
     public void deleteAllByIdWithDealerIdCheck(List<Long> ids, Long dealerId) {
-        List<Product> products = productRepository.findAllById(ids);
-        if (products.stream().allMatch((product -> product.getDealerId().equals(dealerId)))) {
-            productRepository.deleteAll(products);
-        } else {
+        boolean havingMismatchedDealers = productRepository.existsByIdInAndDealerIdNot(ids, dealerId);
+        if (havingMismatchedDealers) {
             throw new DealerNotMatchException("Dealer doesn't match");
         }
+        productRepository.deleteAllById(ids);
     }
 }

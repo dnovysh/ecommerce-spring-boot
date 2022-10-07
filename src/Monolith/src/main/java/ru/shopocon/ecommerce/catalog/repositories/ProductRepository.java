@@ -9,6 +9,8 @@ import org.springframework.data.rest.core.annotation.RestResource;
 import org.springframework.web.bind.annotation.RequestParam;
 import ru.shopocon.ecommerce.catalog.domain.Product;
 
+import java.util.List;
+
 @RepositoryRestResource(collectionResourceRel = "products", path = "catalog-products")
 public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
 
@@ -31,4 +33,8 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     );
 
     Page<Product> findAllByDealerId(long dealerId, Pageable pageable);
+
+    boolean existsByIdAndDealerIdNot(Long id, Long dealerId);
+
+    boolean existsByIdInAndDealerIdNot(List<Long> ids, Long dealerId);
 }

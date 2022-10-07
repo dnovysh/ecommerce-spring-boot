@@ -13,6 +13,7 @@ import ru.shopocon.ecommerce.catalog.model.*;
 import ru.shopocon.ecommerce.catalog.security.permissions.ProductCreatePermission;
 import ru.shopocon.ecommerce.catalog.security.permissions.ProductDeletePermission;
 import ru.shopocon.ecommerce.catalog.security.permissions.ProductReadPermission;
+import ru.shopocon.ecommerce.catalog.security.permissions.ProductUpdatePermission;
 import ru.shopocon.ecommerce.catalog.services.ProductManagementService;
 import ru.shopocon.ecommerce.common.exception.exceptions.DealerNotMatchException;
 import ru.shopocon.ecommerce.identity.managers.DealerAuthenticationManager;
@@ -104,13 +105,33 @@ public class ProductManagementController {
         return ResponseEntity.ok(new ProductResponseModel(product));
     }
 
+    @ProductUpdatePermission
+    @PutMapping("/products/{id}")
+    public ResponseEntity<ProductResponseModel> updateProduct(
+        @PathVariable Long id,
+        @Valid @RequestBody ProductUpdateRequestModel productUpdateRequestModel,
+        Authentication authentication
+    ) {
+        val productUpdateModel = productUpdateRequestModel.getProductUpdateModel();
+        if (hasAuthority(authentication, "product.update")) {
+            return ResponseEntity.ok(new ProductResponseModel(
+                productManagementService.update(id, productUpdateModel, false, null)
+            ));
+        } else {
+            final Long idOfDealerRepresentedByUser = dealerAuthenticationManager.getDealerId(authentication);
+            return ResponseEntity.ok(new ProductResponseModel(
+                productManagementService.update(id, productUpdateModel, true, idOfDealerRepresentedByUser)
+            ));
+        }
+    }
+
     @ProductDeletePermission
     @DeleteMapping("/products")
     public void deleteAllProductsById(@Valid @RequestBody ProductDeleteAllByIdRequestModel requestModel,
                                       Authentication authentication) {
         final List<Long> ids = requestModel.getIds();
         if (ids == null || ids.isEmpty()) {
-            return;
+            throw new ResponseStatusException(BAD_REQUEST, "Identifiers must be specified");
         }
         if (hasAuthority(authentication, "product.delete")) {
             productManagementService.deleteAllById(ids);

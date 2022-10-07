@@ -6,6 +6,7 @@ import ru.shopocon.ecommerce.catalog.domain.Product;
 import ru.shopocon.ecommerce.catalog.model.ProductCreateModel;
 import ru.shopocon.ecommerce.catalog.model.ProductGetAllRequestFilter;
 import ru.shopocon.ecommerce.catalog.model.ProductGetAllResponseModel;
+import ru.shopocon.ecommerce.catalog.model.ProductUpdateModel;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +20,8 @@ public interface ProductManagementService {
     Optional<Product> findById(Long id);
 
     Product create(ProductCreateModel productCreateModel);
+
+    Product update(Long id, ProductUpdateModel productUpdateModel, boolean checkDealer, Long dealerId);
 
     void deleteById(Long id);
 
