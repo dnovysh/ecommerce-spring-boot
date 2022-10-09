@@ -15,7 +15,6 @@ import ru.shopocon.ecommerce.catalog.security.permissions.ProductDeletePermissio
 import ru.shopocon.ecommerce.catalog.security.permissions.ProductReadPermission;
 import ru.shopocon.ecommerce.catalog.security.permissions.ProductUpdatePermission;
 import ru.shopocon.ecommerce.catalog.services.ProductManagementService;
-import ru.shopocon.ecommerce.common.exception.exceptions.DealerNotMatchException;
 import ru.shopocon.ecommerce.identity.managers.DealerAuthenticationManager;
 
 import javax.validation.Valid;
@@ -138,11 +137,7 @@ public class ProductManagementController {
             return;
         }
         final Long idOfDealerRepresentedByUser = dealerAuthenticationManager.getDealerId(authentication);
-        try {
-            productManagementService.deleteAllByIdWithDealerIdCheck(ids, idOfDealerRepresentedByUser);
-        } catch (DealerNotMatchException ex) {
-            throw new AccessDeniedException(ex.getMessage(), ex);
-        }
+        productManagementService.deleteAllByIdWithDealerIdCheck(ids, idOfDealerRepresentedByUser);
     }
 
     @ProductDeletePermission
@@ -153,11 +148,7 @@ public class ProductManagementController {
             return;
         }
         final Long idOfDealerRepresentedByUser = dealerAuthenticationManager.getDealerId(authentication);
-        try {
-            productManagementService.deleteByIdWithDealerIdCheck(id, idOfDealerRepresentedByUser);
-        } catch (DealerNotMatchException ex) {
-            throw new AccessDeniedException(ex.getMessage(), ex);
-        }
+        productManagementService.deleteByIdWithDealerIdCheck(id, idOfDealerRepresentedByUser);
     }
 
     private boolean hasAuthority(Authentication authentication, String authority) {
