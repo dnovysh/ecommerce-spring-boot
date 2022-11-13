@@ -14,14 +14,28 @@ shopocon:
     low-stock-boundary: 5
 
 spring:
-  config:
-    import: usersecrets.yml
+#  config:
+#    import: usersecrets.yml
+
+  datasource:
+    url: jdbc:h2:mem:ecommerce;DB_CLOSE_ON_EXIT=FALSE
+
+  h2:
+    console:
+      path: /h2-console
+      settings:
+        web-allow-others: true
 
   sql:
     init:
       mode: embedded
 
   jpa:
+
+    database: H2
+    database-platform: org.hibernate.dialect.PostgreSQL10Dialect
+
+
     generate-ddl: false
     show-sql: true
     open-in-view: false
@@ -54,7 +68,7 @@ server:
         name: JSESSIONID
         http-only: true
         #secure: true
-      timeout: 20m
+      timeout: 30m
 
 logging:
   level:
