@@ -1,0 +1,79 @@
+shopocon:
+  security:
+    profile: dev
+    origins: http://localhost:4200
+    jwt:
+      access-cookie-name: AUTHJWTA
+      refresh-cookie-name: AUTHJWTR
+      cookie-secure: false
+      issuer: shopoconIdentityService
+      secret: shopoconJwtSecretKeyTheKeySizeMustBeGreaterThanOrEqualToTheHashOutputSize
+      access-token-expiration-min: 30
+      refresh-token-expiration-min: 1440
+  catalog:
+    low-stock-boundary: 5
+
+spring:
+#  config:
+#    import: usersecrets.yml
+
+  datasource:
+    url: jdbc:h2:mem:ecommerce;DB_CLOSE_ON_EXIT=FALSE
+
+  h2:
+    console:
+      path: /h2-console
+      settings:
+        web-allow-others: true
+
+  sql:
+    init:
+      mode: embedded
+
+  jpa:
+
+    database: H2
+    database-platform: org.hibernate.dialect.PostgreSQL10Dialect
+
+
+    generate-ddl: false
+    show-sql: true
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        format_sql: true
+
+  data:
+    rest:
+      base-path: /api
+      return-body-on-create: true
+      return-body-on-update: true
+
+  session:
+    store-type: hazelcast
+    hazelcast:
+      map-name: "shopocon:session:sessions"
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+server:
+  servlet:
+    context-path: /
+    session:
+      cookie:
+        name: JSESSIONID
+        http-only: true
+        #secure: true
+      timeout: 30m
+
+logging:
+  level:
+    root: WARN
+    # show application of sql database initialization scripts
+    #org.springframework.jdbc.datasource.init.ScriptUtils: INFO
+    # show bind parameters
+    #org.hibernate.type.descriptor.sql: TRACE
